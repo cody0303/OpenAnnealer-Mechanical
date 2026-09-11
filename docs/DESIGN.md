@@ -87,7 +87,8 @@ commands per case").
 
 This is modeled directly on a real reference (ARC Precision's ARC Ultimate annealer): a wide
 V-trough hopper feeds a rotating, tilted pocket disk that both singulates and reorients cases in
-one mechanism.
+one mechanism. **CAD**: [`cad/feeder/`](../cad/feeder) (OpenSCAD, sized for a .223 Rem/5.56 NATO
+first prototype) — see [`cad/README.md`](../cad/README.md) before printing.
 
 - **Hopper**: a wide V-trough mounted at roughly 45° from vertical. Cases are dumped in as a loose
   batch — no hand-orienting. Because a case's flat, relatively heavy base makes it the natural
@@ -113,11 +114,16 @@ one mechanism.
   guarantee a catch on every single rotation the way a fully-constrained mechanism would — expect
   an occasional feed cycle that comes up empty, on top of the case-missing-the-holder risk the
   brief already calls out as unaddressed by sensing.
-- **Case-family handling**: the disk is a **swappable part per case-family** (pocket ID/depth sized
-  to that family's head diameter), keyed onto the motor shaft (D-shaft or grub-screw, matching the
-  feeder motor's actual shaft) — same four-family grouping as the holder inserts below. ARC's real
-  unit uses one disk with multiple pocket sizes around its rim instead; that's a viable upgrade path
-  later, but a swappable single-pocket disk is a simpler first part to get right in FDM.
+- **Case-family handling**: the disk is a **swappable part per case-family** (pocket diameter sized
+  to that family's rim/head diameter) — same four-family grouping as the holder inserts below. It
+  mounts on a quick-change hub rather than being keyed directly to the motor shaft: the hub's grub
+  screw is set once against the shaft during initial motor install and never touched again; the
+  disk itself pops on/off tool-lessly via 3 drive pins (torque) and 3 embedded magnets (axial
+  retention) — swapping calibers doesn't mean fighting a grub screw each time. See
+  [`cad/feeder/drive_hub.scad`](../cad/feeder/drive_hub.scad) and
+  [`cad/feeder/singulator_disk.scad`](../cad/feeder/singulator_disk.scad). ARC's real unit uses one
+  disk with multiple pocket sizes around its rim instead; that's a viable upgrade path later, but a
+  swappable single-pocket disk is a simpler first part to get right in FDM.
 - This subsystem is explicitly the least mature part of this design — the brief calls the feed
   mechanism "not yet designed," and pickup reliability (hopper angle, disk tilt, pocket depth) is
   exactly the kind of thing that needs bench iteration against real cases, not more drawing.
@@ -219,16 +225,18 @@ See [`assembly/BOM.md`](../assembly/BOM.md).
 
 ## Next steps requiring physical hardware (not deferrable to more writing)
 
-1. Get real case samples across the intended range (at minimum one from each family above) and
-   check them against the family boundaries in the table — this gates the disk-pocket and insert
-   sizes.
-2. Purchase the induction coil; re-check the ≥25 mm clear-bore target and recompute the arm's
+1. **In progress**: [`cad/feeder/`](../cad/feeder) has a first-pass hopper + singulator disk + face
+   plate + drive hub, sized for a .223 Rem/5.56 NATO prototype off SAAMI reference dimensions —
+   verify those against real fired brass with calipers before printing full-size parts (`cad/`
+   README has the two fits worth test-coupon-ing first: the drive pin fit and the magnet press-fit).
+2. Print that first prototype and bench test hopper pickup reliability and singulation before
+   committing to CAD for the other three case families (Small/Medium/Magnum) or for the holder
+   assembly below it. Pickup reliability (hopper angle, disk tilt, pocket depth) is the part most
+   likely to need several iterations — plan for that rather than expecting the first print to work.
+3. Purchase the induction coil; re-check the ≥25 mm clear-bore target and recompute the arm's
    minimum swing angle (formula above) against its actual OD.
-3. Decide the feeder motor (and, if different, the second motor) before modeling any motor mount
-   as more than the generic envelope described above.
-4. Print a single-family prototype (recommend starting with the Large family — .308-class — since
-   it's the most common bench case) of the singulator disk + face plate + holder shelf + insert cup,
-   and bench test hopper pickup reliability and the feed/hold/drop sequence before committing to
-   CAD for the other three families. Pickup reliability (hopper angle, disk tilt, pocket depth) is
-   the part most likely to need several iterations — plan for that rather than expecting the first
-   print to work.
+4. Decide the feeder motor (and, if different, the second motor) before modeling any motor mount
+   as more than the generic envelope described above — also confirms the feeder motor's actual
+   shaft diameter/flat depth against `DSHAFT_D`/`DSHAFT_FLAT_DEPTH` in `cad/lib/dimensions.scad`.
+5. Model the holder swing arm, shelf, insert cup, coil mount bracket, and drop chute — not started
+   yet; the feeder subsystem above was the starting point.

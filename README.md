@@ -14,13 +14,15 @@ motor) pending real hardware.
 ## Layout
 
 - [`docs/`](docs) — design writeup, concept diagrams, photos as the build progresses
-- [`cad/`](cad) — source CAD models
+- [`cad/`](cad) — source CAD models (OpenSCAD — see [`cad/README.md`](cad/README.md))
 - [`stl/`](stl) — print-ready STL exports
 - [`assembly/`](assembly) — bill of materials, assembly notes
 
 ## Status
 
-Nothing has been printed or bench-tested yet — this repo currently holds the first-pass concept
-design in [`docs/DESIGN.md`](docs/DESIGN.md) and a labeled concept diagram
-([`docs/concept_diagram.svg`](docs/concept_diagram.svg)). CAD models and STLs will follow as the
-design gets validated against real cases and a real coil.
+Nothing has been printed or bench-tested yet. The design writeup and concept diagram are in
+[`docs/DESIGN.md`](docs/DESIGN.md) / [`docs/concept_diagram.svg`](docs/concept_diagram.svg). CAD
+work has started on the feed subsystem — hopper, singulator disk, face plate, and drive hub, sized
+for a .223 Rem / 5.56 NATO prototype — in [`cad/feeder/`](cad/feeder); see
+[`cad/README.md`](cad/README.md) for how to open and print them. The holder arm, coil mount, and
+everything downstream of the feeder isn't modeled yet.

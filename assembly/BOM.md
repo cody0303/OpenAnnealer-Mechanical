@@ -9,9 +9,10 @@ four-family swappable-insert scheme in [`docs/DESIGN.md`](../docs/DESIGN.md); an
 | Part | Material | Qty | Notes |
 |---|---|---|---|
 | Base plate | PLA/PETG | 1 | Mounts hopper/disk assembly, electronics enclosure |
-| Hopper (V-trough) | PLA/PETG | 1 | Structural, fixed, mounted at ~45° |
-| Singulator disk | PETG/Nylon | 1 per family | Single through-hole pocket, keyed to feeder motor shaft |
-| Face plate | PETG/Nylon | 1 | Stationary, behind disk, with discharge cutout |
+| Hopper (V-trough) | PLA/PETG | 1 | Structural, fixed, mounted at ~45° — `cad/feeder/hopper.scad` |
+| Drive hub | PETG/Nylon | 1 | Fixed to feeder motor shaft — `cad/feeder/drive_hub.scad` |
+| Singulator disk | PETG/Nylon | 1 per family | Quick-change onto drive hub — `cad/feeder/singulator_disk.scad` |
+| Face plate | PETG/Nylon | 1 | Stationary, behind disk, with discharge cutout — `cad/feeder/face_plate.scad` |
 | Drop chute | PETG/Nylon | 1 | Disk discharge → holder |
 | Coil mount bracket | PETG/Nylon | 1 | Vertical slot for height adjustment |
 | Swing arm | PETG/Nylon | 1 | Carries adjustment stud |
@@ -24,9 +25,11 @@ four-family swappable-insert scheme in [`docs/DESIGN.md`](../docs/DESIGN.md); an
 | Item | Spec | Qty | Notes |
 |---|---|---|---|
 | Vertical pivot shaft (arm) | steel rod, diameter TBD by servo horn/bearing choice | 1 | |
-| Tilted disk shaft | steel rod/shaft coupler, matches feeder motor shaft | 1 | ~45° mount |
+| Hub set screw | M3 grub screw | 1 | Set once against motor shaft flat; never touched again per caliber swap |
+| Quick-change magnets | 6×2mm neodymium disc | 3 per hub + 3 per disk | Press-fit into `drive_hub.scad`/`singulator_disk.scad` pockets — check polarity before gluing |
 | Adjustment stud + thumb nut | threaded rod (e.g. M6), knurled nut | 1 set | Case-length compensation |
 | Coil mount screw + slot hardware | M4 or M5 | 2 | Height-adjust clamp |
+| Face plate mounting screws | M3 | 3 | Into housing standoffs — `cad/feeder/face_plate.scad` |
 | Case-holder servo | TowerPro SG90/MG90S or similar | 1 | Per firmware README |
 | Motor mounting screws | TBD once motor(s) chosen | — | Goes through adapter plate, not structural part |
 
