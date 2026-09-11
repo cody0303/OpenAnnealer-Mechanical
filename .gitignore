@@ -1,0 +1,7 @@
+# Local scratch / work-in-progress CAD, kept out of the repo but not deleted
+*_scratch.scad
+cad/feeder/hopper_correct.scad
+
+# OpenSCAD editor/session leftovers
+*.scad.bak
+*.echo
