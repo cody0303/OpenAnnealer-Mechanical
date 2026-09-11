@@ -56,6 +56,21 @@ POCKET_COUNT   = 4;             // at 90 degree spacing this pairs with SINGULAT
                                  // one scallop sits in the exposed window at a time.
 
 // ---------------------------------------------------------------------------
+// Retaining radius -- the single wall the pile runs against
+//
+// A case seated in a scallop has its centre on the rim, so it sticks out past
+// the wheel's own surface by half a case. Anything meant to run beside the
+// wheel therefore has to clear POCKET_ORBIT_R + CASE_RIM_D/2, NOT just the
+// wheel's radius. Getting that wrong is what put a 2.8mm interference between
+// a seated case and the hopper's outlet: the case fouled the hopper wall on
+// its way out of the pile.
+//
+// The hopper's outlet cut and the shroud's inner face both use this one
+// radius, so they hand off flush with no step for a case to catch on.
+SHROUD_CLEAR = 1.0;   // radial clearance over a seated case
+RETAIN_R     = POCKET_ORBIT_R + POCKET_D/2 + SHROUD_CLEAR;
+
+// ---------------------------------------------------------------------------
 // Back plate (stationary) -- the surface case bases ride on
 //
 // This is the hopper's floor continued underneath the wheel. A case stands
@@ -96,12 +111,26 @@ SINGULATOR_EXPOSURE_ANGLE = 90;
 // the bottom edge; 0.35*D is the approximation used in hopper.scad (0.3536*D at 90 degrees).
 SINGULATOR_CENTER_DROP = 0.35 * DISK_OD;
 RIM_INTRUSION          = DISK_OD/2 - SINGULATOR_CENTER_DROP;  // exposed tread the pile rests on
-SINGULATOR_CUT_FACTOR  = 1.08;   // outlet cut is this much bigger than the wheel, for running clearance
+
+// The outlet cut is sized to RETAIN_R, not to the wheel. It has to clear a case seated in a
+// scallop (which reaches past the wheel's own surface), while still being tight enough that a
+// loose case from the pile can't escape through the annular gap -- both asserted below.
+HOPPER_CUT_D = 2 * RETAIN_R;
 
 // The converging funnel falls out of the singulator geometry rather than being picked by eye: the
 // exposure angle subtends a chord across the wheel, that chord is exactly how wide the outlet has
 // to be, and the sides fall back from it at HOPPER_FEED_ANGLE.
 HOPPER_CHORD   = DISK_OD * sin(SINGULATOR_EXPOSURE_ANGLE / 2);
+
+// Arching risk. Standard hopper practice wants an outlet at least 4-6x the particle size before
+// bridging stops being likely; below that, particles can key together into a stable arch over the
+// opening and the hopper stops feeding even though it's full. This is NOT asserted, because the
+// number here is genuinely marginal rather than wrong, and two things work in our favour that the
+// rule of thumb doesn't account for: the outlet's floor is a rotating wheel (a continuous
+// agitator, where the rule assumes static walls), and brass cases are smooth and non-cohesive.
+// Raising SINGULATOR_EXPOSURE_ANGLE widens the chord if this does bridge on the bench -- about
+// 100 degrees reaches 4x, about 147 degrees reaches 5x.
+HOPPER_BRIDGE_RATIO = HOPPER_CHORD / CASE_RIM_D;
 HOPPER_ANGLE_X = (HOPPER_WIDTH - HOPPER_CHORD) / 2;
 HOPPER_ANGLE_Y = HOPPER_ANGLE_X / tan(HOPPER_FEED_ANGLE);
 
@@ -118,9 +147,14 @@ HOPPER_CAPACITY      = floor(HOPPER_FLOOR_AREA / HOPPER_AREA_PER_CASE);
 // Shroud -- wraps the rim so a captured case can't fall out of its scallop
 // between pickup and discharge. Where the shroud ends IS the release point.
 // ---------------------------------------------------------------------------
-SHROUD_CLEAR       = 1.0;   // radial clearance over the captured case
+// SHROUD_CLEAR and the shroud's inner radius (RETAIN_R) are defined up with the pocket geometry,
+// since the hopper's outlet cut has to use the same radius.
 SHROUD_THICKNESS   = 3;
-SHROUD_START_ANGLE = 100;   // just past the hopper outlet at the top of the wheel (90 degrees)
+
+// The shroud picks up exactly where the hopper's exposure window ends, so the pile runs against
+// one continuous wall. Starting it any earlier drives the shroud into the hopper's opening -- an
+// earlier fixed value of 100 overlapped the window by 35 degrees and the two parts collided.
+SHROUD_START_ANGLE = 90 + SINGULATOR_EXPOSURE_ANGLE/2;
 SHROUD_END_ANGLE   = DISCHARGE_ANGLE;
 
 // ---------------------------------------------------------------------------
@@ -254,4 +288,12 @@ assert(MOTOR_BOLT_GAP > MOTOR_BOLT_D/2 + MOTOR_DISCHARGE_CLEAR_D/2 + 1.5,
     "a motor bolt hole is too close to the discharge opening -- re-clock MOTOR_BOLT_ANGLE_OFFSET");
 assert(MOTOR_STANDOFF_GAP > MOUNT_HOLE_CHECK_D/2 + MOTOR_DISCHARGE_CLEAR_D/2 + 1.5,
     "a standoff is too close to the discharge opening -- move the back plate mount circle");
+
+// Jam / interference checks around the outlet -- the "curved area" where the pile meets the wheel.
+assert(RETAIN_R > POCKET_ORBIT_R + CASE_RIM_D/2,
+    "retaining wall must clear a case seated in a scallop, or the case fouls it leaving the pile");
+assert(RETAIN_R - DISK_OD/2 < CASE_RIM_D,
+    "annular gap beside the wheel must be narrower than a case, or loose cases escape the pile");
+assert(SHROUD_START_ANGLE >= 90 + SINGULATOR_EXPOSURE_ANGLE/2,
+    "shroud must start at or after the hopper's exposure window, or the two parts occupy the same space");
 

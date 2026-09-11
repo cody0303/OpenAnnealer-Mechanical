@@ -16,7 +16,7 @@
 
 include <../lib/dimensions.scad>
 
-SHROUD_INNER_R = POCKET_ORBIT_R + POCKET_D/2 + SHROUD_CLEAR;
+SHROUD_INNER_R = RETAIN_R;   // shared with the hopper's outlet cut so the two hand off flush
 
 module shroud() {
     sweep = SHROUD_END_ANGLE - SHROUD_START_ANGLE;

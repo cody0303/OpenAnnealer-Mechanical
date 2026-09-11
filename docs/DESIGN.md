@@ -123,10 +123,25 @@ hopper pan feeds a scalloped-rim wheel that singulates cases off the bottom of t
 - **Back plate**: the hopper's floor continued underneath the wheel. It's what the case *base* rides
   on — so the plate does the axial job and the rim scallop does the lateral one. A case carried
   round keeps its base sliding on this plate until it reaches the plate's discharge hole.
-- **Shroud**: an arc wall following the rim at a small clearance, from just past the outlet round to
+- **Shroud**: an arc wall following the rim, from where the hopper's exposure window ends round to
   the discharge. Without it a captured case would simply roll back out of its scallop as the wheel
   turned away from the pile. **Where the shroud ends is the release point** — the case is no longer
   held, and drops through the discharge hole into the chute.
+- **One retaining radius for everything beside the wheel.** A case seated in a scallop has its
+  centre *on* the rim, so it sticks out half a case-width past the wheel's own surface. Anything
+  running beside the wheel must therefore clear `POCKET_ORBIT_R + CASE_RIM_D/2`, not just the
+  wheel's radius — sizing the hopper's outlet to the wheel instead put a 2.8mm interference right
+  where a loaded scallop leaves the pile, so the case fouled the hopper wall on its way out. The
+  hopper's outlet and the shroud's inner face now share a single `RETAIN_R`, which makes them flush
+  with no step to catch on, and it's bounded from both sides: wide enough to clear a seated case,
+  narrow enough (6.2mm vs. a 9.6mm case) that loose cases can't escape the pile through the gap.
+  Both bounds are asserted.
+- **Arching is the remaining open risk.** The outlet chord is 3.7× the case diameter, where hopper
+  practice generally wants 4–6× before bridging stops being likely. It's deliberately *not*
+  asserted — the number is marginal rather than wrong, and the rule assumes static walls whereas
+  here the outlet's floor is a rotating wheel continuously agitating the pile, with smooth
+  non-cohesive brass. If it does bridge on the bench, widening `SINGULATOR_EXPOSURE_ANGLE` widens
+  the chord: ~100° reaches 4×, ~147° reaches 5×.
 - **Open-loop timing**: the firmware only needs to run the wheel long enough to guarantee a scallop
   passes both the hopper outlet and the discharge at least once
   (`feed_run_time_ms`/`feed_speed_rps` in `profile.c`) — no feed-confirmation sensor needed, matching

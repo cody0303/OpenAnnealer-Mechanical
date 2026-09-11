@@ -68,13 +68,14 @@ module hopper() {
             // pile. The center drops below the pan's bottom edge by
             // R*cos(theta/2) -- the offset that puts the exposure chord
             // exactly on that edge -- leaving the rim standing proud by
-            // RIM_INTRUSION. Cut is oversized by SINGULATOR_CUT_FACTOR so the
-            // wheel turns without rubbing.
+            // RIM_INTRUSION. The cut is sized to RETAIN_R -- big enough to
+            // clear a case seated in a scallop, small enough that a loose case
+            // cannot escape through the annular gap.
             translate([0.5 * hopperWidth,
                        -SINGULATOR_CENTER_DROP,
                        baseThickness])
                 linear_extrude(height = hopperDepth - baseThickness + 1)
-                    circle(d = singulatorDiameter * SINGULATOR_CUT_FACTOR);
+                    circle(d = HOPPER_CUT_D);
         }
         // open the top -- loading
         translate([wallThickness, (hopperHeight - wallThickness) - 1, baseThickness])
