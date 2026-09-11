@@ -96,6 +96,16 @@ hopper pan feeds a scalloped-rim wheel that singulates cases off the bottom of t
   base-down on the pan's base plate, sticking out of its open front; the walls constrain them
   laterally near their bases. The lean makes the pile slide down the base plate, and the pan's
   lower sides — converging at a `feedAngle` of 30° — funnel it into the bottom outlet.
+- **Capacity**: sized for **at least 50 cases**. Because they stand base-down in a single layer,
+  capacity is just floor area ÷ area-per-case, so it's driven by the pan's footprint rather than
+  its depth. `dimensions.scad` computes this (~54 at the current 85×90mm pan, using hex packing at
+  the rim diameter derated 15% for loose dumping) and **asserts** it stays ≥50, so shrinking the
+  pan or growing the funnel fails loudly rather than quietly under-delivering. It's an estimate
+  from packing geometry — worth checking against a real handful of brass.
+- **The funnel is derived, not eyeballed**: `singulatorExposureAngle` sets how much of the wheel's
+  circumference is exposed to the pile; the chord that subtends *is* the outlet width, and the
+  converging sides fall back from it at `feedAngle`. So the funnel always lands exactly where the
+  wheel's rim emerges, and changing the wheel size moves the hopper to match automatically.
 - **The wheel's rim sits in that outlet, and its cylindrical *side* is the floor the bottom of the
   pile rests on.** This is the detail that makes the whole mechanism work, and it's easy to get
   wrong: the cases do not stand on the wheel's *face*, and the capture feature is not a hole

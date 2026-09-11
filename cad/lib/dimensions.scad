@@ -33,17 +33,15 @@ CLEARANCE_PRESS = -0.10; // negative = interference, for press-fit magnet pocket
 // ---------------------------------------------------------------------------
 // Singulator disk
 // ---------------------------------------------------------------------------
-// Wheel diameter is squeezed from two directions, so it can't be picked freely:
+// Scaled up from the 30mm placeholder, driven by the hopper needing to hold 50+ cases (see the
+// capacity check in the hopper section). Growing the wheel also relieves what was a real squeeze:
+//   - a scallop cuts POCKET_D/2 into the rim, so wheel material only survives inside
+//     DISK_OD/2 - POCKET_D/2. At 30mm that was 9.8mm and forced the hub's magnets down to 4mm;
+//     at 50mm it's 19.8mm, which comfortably takes the 6mm magnets back.
 //   - scallop spacing: to leave as much rim material between scallops as each scallop is wide,
-//     you need pi*DISK_OD >= 2 * POCKET_COUNT * POCKET_D. At POCKET_D 10.4 that's DISK_OD >= 40
-//     for 6 scallops, >= 27 for 4, >= 20 for 3.
-//   - the quick-change hub: a scallop cuts POCKET_D/2 into the rim, and the hub's magnet circle
-//     needs MAGNET_ORBIT_R + MAGNET_D/2 of clear radius inside that. With the current hub that
-//     puts a hard floor of about DISK_OD >= 49 (see the assertion at the bottom of this file).
-// So a ~20mm singulator wheel is not compatible with this magnetic quick-change hub -- it would
-// need a smaller hub interface (smaller magnets on a tighter circle), at the cost of grip.
-DISK_OD        = 56;
-DISK_THICKNESS = 20;  // the wheel's TREAD WIDTH -- how much of a case's length the scallop cradles. The case
+//     you need pi*DISK_OD >= 2 * POCKET_COUNT * POCKET_D. At 50mm that allows up to 7.
+DISK_OD        = 50;
+DISK_THICKNESS = 25;  // the wheel's TREAD WIDTH -- how much of a case's length the scallop cradles. The case
                        // lies parallel to the wheel's axis and overhangs both this and the back plate, so a
                        // wider tread cradles it more stably. Kept equal to HOPPER_DEPTH so the hopper's walls
                        // and the wheel's tread support the case over the same span.
@@ -54,8 +52,8 @@ DISK_THICKNESS = 20;  // the wheel's TREAD WIDTH -- how much of a case's length 
 POCKET_D       = CASE_RIM_D + 2*CLEARANCE_LOOSE;  // scallop diameter -- clears the case's largest section
 POCKET_ORBIT_R = DISK_OD / 2;   // scallop centers sit exactly on the rim, so each is a half-round bite. Moving
                                  // this inward would grip harder but the case could then only leave axially.
-POCKET_COUNT   = 6;             // the reference wheel is scalloped all the way round; 1 also works (the rest of
-                                 // the tread is just smooth floor for the pile) but feeds far slower.
+POCKET_COUNT   = 4;             // at 90 degree spacing this pairs with SINGULATOR_EXPOSURE_ANGLE below: exactly
+                                 // one scallop sits in the exposed window at a time.
 
 // ---------------------------------------------------------------------------
 // Back plate (stationary) -- the surface case bases ride on
@@ -68,7 +66,7 @@ POCKET_COUNT   = 6;             // the reference wheel is scalloped all the way 
 BACKPLATE_OD             = DISK_OD + 16;
 BACKPLATE_THICKNESS      = 4;
 BACKPLATE_CLEARANCE_GAP  = 0.5;   // running clearance between the wheel's back face and the plate
-BACKPLATE_CENTER_CLEAR_D = 36;    // central clearance the hub's pins/magnets/boss pass through unblocked
+BACKPLATE_CENTER_CLEAR_D = 34;    // central clearance the hub's pins/magnets/boss pass through unblocked
 DISCHARGE_CUTOUT_D       = POCKET_D + 2.5;  // bigger than the scallop, for rotational alignment slop
 DISCHARGE_ANGLE          = 250;   // degrees. Pickup happens where the hopper's outlet meets the rim (top of
                                    // the wheel); this is far enough round that the shroud has carried the case
@@ -81,15 +79,40 @@ DISCHARGE_ANGLE          = 250;   // degrees. Pickup happens where the hopper's 
 // needs them to place the pan against the wheel, and a duplicated copy in the
 // assembly file silently went stale once already.
 // ---------------------------------------------------------------------------
-HOPPER_WALL_T  = 2;
-HOPPER_BASE_T  = 3;
-HOPPER_HEIGHT  = 50;
-HOPPER_DEPTH   = DISK_THICKNESS;  // matches the wheel's tread width
-HOPPER_MARGIN  = 12;              // material either side of the wheel at the outlet
-HOPPER_WIDTH   = DISK_OD + 2*HOPPER_MARGIN;
-HOPPER_FEED_ANGLE = 30;           // convergence of the pan's lower sides down to the outlet
-RIM_INTRUSION  = 4;               // how far the wheel's rim stands proud of the hopper's bottom edge --
-                                   // this is the exposed tread the bottom of the pile rests on
+HOPPER_WALL_T     = 2;
+HOPPER_BASE_T     = 3;
+HOPPER_WIDTH      = 85;              // sized for the 50-case target -- see the capacity check below
+HOPPER_HEIGHT     = 90;
+HOPPER_DEPTH      = DISK_THICKNESS;  // matches the wheel's tread width
+HOPPER_FEED_ANGLE = 30;              // convergence of the pan's lower sides down to the outlet
+
+// How much of the wheel's circumference is exposed to the pile through the outlet. This is what
+// sets the outlet's width, and from there the whole converging funnel -- see hopper.scad, where
+// the chord it subtends drives angleX/angleY rather than those being picked by eye.
+SINGULATOR_EXPOSURE_ANGLE = 90;
+
+// Where the wheel's center sits relative to the pan's bottom edge, and how far its rim therefore
+// stands proud of that edge. R*cos(theta/2) is the exact offset that puts the exposure chord on
+// the bottom edge; 0.35*D is the approximation used in hopper.scad (0.3536*D at 90 degrees).
+SINGULATOR_CENTER_DROP = 0.35 * DISK_OD;
+RIM_INTRUSION          = DISK_OD/2 - SINGULATOR_CENTER_DROP;  // exposed tread the pile rests on
+SINGULATOR_CUT_FACTOR  = 1.08;   // outlet cut is this much bigger than the wheel, for running clearance
+
+// The converging funnel falls out of the singulator geometry rather than being picked by eye: the
+// exposure angle subtends a chord across the wheel, that chord is exactly how wide the outlet has
+// to be, and the sides fall back from it at HOPPER_FEED_ANGLE.
+HOPPER_CHORD   = DISK_OD * sin(SINGULATOR_EXPOSURE_ANGLE / 2);
+HOPPER_ANGLE_X = (HOPPER_WIDTH - HOPPER_CHORD) / 2;
+HOPPER_ANGLE_Y = HOPPER_ANGLE_X / tan(HOPPER_FEED_ANGLE);
+
+// Capacity check. Cases stand base-down on the pan's base plate, so they fill it as a single
+// layer and capacity is just floor area over area-per-case. The per-case figure is hex packing
+// at the case's rim diameter plus a little slop, then derated 15% because cases dumped in loose
+// never pack perfectly.
+HOPPER_FLOOR_AREA  = (HOPPER_WIDTH - 2*HOPPER_WALL_T) * (HOPPER_HEIGHT - HOPPER_WALL_T)
+                     - HOPPER_ANGLE_X * HOPPER_ANGLE_Y;
+HOPPER_AREA_PER_CASE = 0.866 * pow(CASE_RIM_D + 1, 2) * 1.15;
+HOPPER_CAPACITY      = floor(HOPPER_FLOOR_AREA / HOPPER_AREA_PER_CASE);
 
 // ---------------------------------------------------------------------------
 // Shroud -- wraps the rim so a captured case can't fall out of its scallop
@@ -111,9 +134,9 @@ SHROUD_END_ANGLE   = DISCHARGE_ANGLE;
 DSHAFT_D          = 5.0;   // NEMA17 5mm D-shaft
 DSHAFT_FLAT_DEPTH = 0.5;   // how far the flat is cut in from the full-diameter edge (typical for a 5mm D-shaft;
                             // measure yours -- this varies by manufacturer)
-HUB_OD            = 40;    // hub body, sits behind the back plate -- does not need to pass through anything
+HUB_OD            = 36;    // hub body, sits behind the back plate -- does not need to pass through anything
                             // (must fully contain the magnet pockets below -- see assertion at the bottom
-                            // of this file; a render caught this too small at 30mm, the pockets broke
+                            // of this file; a render caught this too small once, the pockets broke
                             // through the outer wall)
 HUB_LENGTH        = 14;    // along the shaft
 HUB_SETSCREW_D    = 2.6;   // pilot for an M3 thread-forming screw (drill/tap after printing, or press in a
@@ -121,18 +144,22 @@ HUB_SETSCREW_D    = 2.6;   // pilot for an M3 thread-forming screw (drill/tap af
 
 ENGAGEMENT_DEPTH = 4;  // how far the boss/pins reach into the disk's back face -- shared so both bottom out together
 
-PILOT_BOSS_D   = 8;    // centers the disk on the hub
+// Everything the hub puts on the wheel's back face has to live inside the radius the scallops
+// leave intact (DISK_OD/2 - POCKET_D/2 = 9.8mm at a 30mm wheel), which is what forced this whole
+// interface down a size. Angular position doesn't matter -- if it fits inside that radius it
+// clears every scallop regardless of where they land.
+PILOT_BOSS_D   = 8;    // centers the wheel on the hub
 PILOT_BOSS_LEN = BACKPLATE_THICKNESS + 2*BACKPLATE_CLEARANCE_GAP + ENGAGEMENT_DEPTH;  // back plate + both running
                                                                                        // gaps + engagement
 
 DRIVE_PIN_D       = 3.0;
 DRIVE_PIN_LEN     = BACKPLATE_THICKNESS + 2*BACKPLATE_CLEARANCE_GAP + ENGAGEMENT_DEPTH;
-DRIVE_PIN_ORBIT_R = 12;
+DRIVE_PIN_ORBIT_R = 8;
 DRIVE_PIN_COUNT   = 3;
 
-MAGNET_D            = 6.0;   // common small neodymium disc magnet -- confirm against what you actually source
+MAGNET_D            = 6.0;   // common small neodymium disc -- confirm against what you actually source
 MAGNET_THICKNESS    = 2.0;
-MAGNET_ORBIT_R      = 14;
+MAGNET_ORBIT_R      = 12;
 MAGNET_COUNT        = 3;
 MAGNET_ANGLE_OFFSET = 60;    // rotates the magnet circle relative to the pin circle, purely so the two sets of
                               // pockets don't crowd each other -- hub and disk both use this same constant so
@@ -159,3 +186,7 @@ assert(POCKET_ORBIT_R - POCKET_D/2 > MAGNET_ORBIT_R + MAGNET_D/2 + 2,
     "rim scallops must not cut into the wheel's hub-mounting region");
 assert(DISCHARGE_CUTOUT_D/2 < BACKPLATE_OD/2 - DISK_OD/2 + POCKET_D/2,
     "discharge hole must stay inside the back plate's outer edge");
+assert(HOPPER_CHORD < HOPPER_WIDTH - 4*HOPPER_WALL_T,
+    "hopper must be wider than the wheel's exposure chord, with wall left either side");
+assert(HOPPER_CAPACITY >= 50,
+    "hopper must hold at least 50 cases -- grow HOPPER_WIDTH/HOPPER_HEIGHT (estimate, verify with real brass)");

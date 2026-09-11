@@ -47,10 +47,11 @@ SHOW_CASES = true;   // set false for a clean view of the printed parts alone
 // Cases resting on the wheel's crown and stacked up the hopper, all lying
 // parallel to the wheel's axis. Positions are eyeballed for the preview.
 CASE_POSITIONS = [
-    [-10, 31], [0, 32.8], [10, 31],
-    [-15, 39], [-5, 40.5], [5, 40.5], [15, 39],
-    [-10, 48], [0, 49], [10, 48],
-    [-15, 56], [-5, 57], [5, 57], [15, 56],
+    [-10, 28], [0, 30], [10, 28],
+    [-15, 37], [-5, 38], [5, 38], [15, 37],
+    [-20, 46], [-10, 47], [0, 47], [10, 47], [20, 46],
+    [-25, 55], [-15, 56], [-5, 56], [5, 56], [15, 56], [25, 55],
+    [-20, 65], [-10, 65], [0, 65], [10, 65], [20, 65],
 ];
 
 module feeder_assembly() {

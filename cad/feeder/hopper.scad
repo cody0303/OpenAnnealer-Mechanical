@@ -23,18 +23,24 @@ include <../lib/dimensions.scad>
 
 // Values come from dimensions.scad so the assembly places this pan against the
 // wheel using the same numbers the pan is built from.
-wallThickness      = HOPPER_WALL_T;
-baseThickness      = HOPPER_BASE_T;
-hopperHeight       = HOPPER_HEIGHT;
-hopperDepth        = HOPPER_DEPTH;
-feedAngle          = HOPPER_FEED_ANGLE;
-hopperWidth        = HOPPER_WIDTH;
-singulatorDiameter = DISK_OD;   // the bottom outlet is a circular notch the wheel's rim sits in
-rimIntrusion       = RIM_INTRUSION;
+wallThickness           = HOPPER_WALL_T;
+baseThickness           = HOPPER_BASE_T;
+hopperWidth             = HOPPER_WIDTH;
+hopperHeight            = HOPPER_HEIGHT;
+hopperDepth             = HOPPER_DEPTH;
+feedAngle               = HOPPER_FEED_ANGLE;
+singulatorDiameter      = DISK_OD;   // the bottom outlet is a circular notch the wheel's rim sits in
+singulatorExposureAngle = SINGULATOR_EXPOSURE_ANGLE;
 
-// Triangle cutout that converges the lower sides down to the outlet
-angleY = 0.3 * hopperHeight;
-angleX = angleY * tan(feedAngle);
+// The converging funnel is derived from the singulator, not picked by eye: the
+// exposure angle subtends a chord across the wheel, that chord is exactly how
+// wide the outlet has to be, and the sides then fall back from it at feedAngle.
+// So the funnel always lands precisely where the wheel's rim emerges.
+// (Computed in dimensions.scad so the assembly and the capacity check use the
+// same numbers this pan is built from.)
+chordLength = HOPPER_CHORD;
+angleX      = HOPPER_ANGLE_X;
+angleY      = HOPPER_ANGLE_Y;
 
 p0 = [0, angleY];
 p1 = [0, hopperHeight];
@@ -59,20 +65,16 @@ module hopper() {
 
             // Open the bottom: a circular notch the wheel's rim sits in, so
             // the exposed tread becomes the floor under the bottom of the
-            // pile. The circle's center sits below the hopper's bottom edge by
-            // (radius - rimIntrusion), which is what makes the rim stand proud
-            // by exactly rimIntrusion.
-            //
-            // Two things to watch if you edit this, both of which bit the
-            // first draft: linear_extrude takes `height`, not `depth` (with
-            // `depth` it silently falls back to a default and warns), and a
-            // translate inside linear_extrude acts on a 2D shape, so a Z term
-            // there does nothing -- translate the extruded solid instead.
-            translate([hopperWidth/2,
-                       -(singulatorDiameter/2 - rimIntrusion),
+            // pile. The center drops below the pan's bottom edge by
+            // R*cos(theta/2) -- the offset that puts the exposure chord
+            // exactly on that edge -- leaving the rim standing proud by
+            // RIM_INTRUSION. Cut is oversized by SINGULATOR_CUT_FACTOR so the
+            // wheel turns without rubbing.
+            translate([0.5 * hopperWidth,
+                       -SINGULATOR_CENTER_DROP,
                        baseThickness])
                 linear_extrude(height = hopperDepth - baseThickness + 1)
-                    circle(d = singulatorDiameter);
+                    circle(d = singulatorDiameter * SINGULATOR_CUT_FACTOR);
         }
         // open the top -- loading
         translate([wallThickness, (hopperHeight - wallThickness) - 1, baseThickness])
