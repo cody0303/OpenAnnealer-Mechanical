@@ -28,6 +28,21 @@ Parametric, text-based CAD for the printed parts. [Install OpenSCAD](https://ope
 Not yet modeled: the holder swing arm, shelf, insert cup, coil mount bracket, and drop chute (the
 rest of the column below the feeder) — next after this subsystem is validated on the bench.
 
+## Renders
+
+[`renders/`](renders) has PNG snapshots of each part and the combined stack, rendered headlessly
+with `openscad --render` — a quick way to see what these look like without opening OpenSCAD. These
+already caught one real bug (an earlier `HUB_OD` was too small and the magnet pockets broke through
+the hub's outer wall — fixed in `dimensions.scad`, visible as the difference between print-checked
+history and the current renders). Re-render after any geometry change rather than trusting these to
+stay current:
+
+```bash
+openscad -o renders/drive_hub.png --render --imgsize=900,900 feeder/drive_hub.scad
+```
+
+(swap in each part's `.scad` path; `feeder_assembly.scad` is the combined-stack shot).
+
 ## How to use these files
 
 1. Open `feeder/feeder_assembly.scad` in OpenSCAD first to see how the pieces relate spatially and

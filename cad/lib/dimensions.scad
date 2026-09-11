@@ -64,7 +64,10 @@ DISCHARGE_ANGLE          = 270;   // degrees, this part's local frame -- chosen 
 DSHAFT_D          = 5.0;   // NEMA17 5mm D-shaft
 DSHAFT_FLAT_DEPTH = 0.5;   // how far the flat is cut in from the full-diameter edge (typical for a 5mm D-shaft;
                             // measure yours -- this varies by manufacturer)
-HUB_OD            = 30;    // hub body, sits behind the face plate -- does not need to pass through anything
+HUB_OD            = 40;    // hub body, sits behind the face plate -- does not need to pass through anything
+                            // (must fully contain the magnet pockets below -- see assertion at the bottom
+                            // of this file; a render caught this too small at 30mm, the pockets broke
+                            // through the outer wall)
 HUB_LENGTH        = 14;    // along the shaft
 HUB_SETSCREW_D    = 2.6;   // pilot for an M3 thread-forming screw (drill/tap after printing, or press in a
                             // brass insert) -- this is the ONLY fastener touched when installing the motor
@@ -101,6 +104,10 @@ assert(DRIVE_PIN_ORBIT_R + DRIVE_PIN_D/2 < FACEPLATE_CENTER_CLEAR_D/2,
     "drive pins must fit inside the face plate's central clearance hole");
 assert(PILOT_BOSS_D/2 < DRIVE_PIN_ORBIT_R - DRIVE_PIN_D/2,
     "pilot boss must not overlap the drive pin circle");
+assert(MAGNET_ORBIT_R + MAGNET_D/2 < HUB_OD/2 - 2,
+    "hub magnet pockets must stay well inside the hub body's outer wall (2mm min) -- caught a real print-breaking bug here once already");
+assert(DRIVE_PIN_ORBIT_R + DRIVE_PIN_D/2 < HUB_OD/2 - 2,
+    "hub drive pins must stay well inside the hub body's outer wall (2mm min)");
 assert(POCKET_ORBIT_R - POCKET_HOLE_D/2 > FACEPLATE_CENTER_CLEAR_D/2,
     "pocket hole's inner edge must clear the face plate's central hole, so it stays over solid blocking material");
 assert(POCKET_ORBIT_R + POCKET_HOLE_D/2 < DISK_OD/2 - 2,
