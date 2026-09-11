@@ -1,97 +1,96 @@
-// Combined preview of the feeder stack: drive hub -> face plate -> singulator
-// disk -> hopper. Open THIS file in OpenSCAD to sanity-check spacing and
-// alignment across all four parts at once; open an individual part file to
-// work on just that part.
+// Combined preview of the feeder: hopper -> singulator wheel -> shroud ->
+// back plate -> drive hub. Open THIS file in OpenSCAD to sanity-check how the
+// parts relate; open an individual part file to work on just that part.
 //
-// This is a visualization/fit-check aid, not itself something you'd print or
-// export as one STL -- print each part from its own file.
+// Visualization/fit-check aid, not something to print or export as one STL --
+// print each part from its own file.
+//
+// --- How it works -----------------------------------------------------------
+// Cases stand base-down on the back plate, sticking out the hopper's open
+// front. The pan leans back, so the pile slides down the plate and the
+// hopper's converging sides funnel it into the bottom outlet. The wheel's rim
+// sits in that outlet -- its cylindrical SIDE is the floor the bottom of the
+// pile rests on. A half-round scallop coming round takes one case off the
+// pile; the shroud holds it in while the wheel carries it round; at the
+// shroud's end the case is released and drops through the back plate's
+// discharge hole into the chute.
 //
 // --- Coordinate bookkeeping -------------------------------------------------
-// Each part file defines its own convenient local Z axis (documented at the
-// top of that file). Walking from the hub outward along assembly Z:
+//   Z = the wheel's axis. Assembly Z=0 is the back plate's FRONT face, i.e.
+//   the surface case bases ride on.
 //
-//   assembly Z = 0                       : hub's front face (boss/pins start here)
-//   assembly Z = GAP                     : face plate's back face (hub side)
-//   assembly Z = GAP + T_FP              : face plate's front face (disk side)
-//   assembly Z = GAP + T_FP + GAP        : disk's back face (hub side)
-//   assembly Z = GAP + T_FP + GAP + T_DK : disk's front face (hopper side) -- hopper starts here
+//   z = -BACKPLATE_THICKNESS - GAP : hub's front face (boss/pins start here)
+//   z = -BACKPLATE_THICKNESS .. 0  : back plate
+//   z = GAP .. GAP + DISK_THICKNESS: wheel (running clear of the plate)
+//   z = 0 upward                   : cases, standing on the plate
 //
-// The face plate and disk are each mirrored before placement, because their
-// own local Z increases from front (disk/hopper side) to back (hub side) --
-// the opposite direction from assembly Z, which increases from the hub
-// outward. See the mirror+translate pattern below.
+// The back plate is mirrored on placement because its own local Z runs front
+// to back, opposite to assembly Z here.
 //
-// The whole stack is then tilted ~45 degrees at the very end to preview the
-// real installed orientation (see docs/DESIGN.md / concept_diagram.svg) --
-// the coil/holder assembly below the chute isn't modeled yet, so this is
-// illustrative only.
+// The whole thing is then tilted at the end to preview the real installed
+// orientation. The chute and coil below aren't modeled yet.
 
 include <../lib/dimensions.scad>
 use <../lib/case_model.scad>
 use <drive_hub.scad>
 use <singulator_disk.scad>
-use <face_plate.scad>
+use <back_plate.scad>
+use <shroud.scad>
 use <hopper.scad>
 
-GAP  = FACEPLATE_CLEARANCE_GAP;
-T_FP = FACEPLATE_THICKNESS;
-T_DK = DISK_THICKNESS;
-
-FACEPLATE_FRONT_Z = GAP + T_FP;
-DISK_FRONT_Z      = GAP + T_FP + GAP + T_DK;
+GAP = BACKPLATE_CLEARANCE_GAP;
 
 ASSEMBLY_TILT_DEG = 45;
 
 SHOW_CASES = true;   // set false for a clean view of the printed parts alone
 
-// Rough packing of cases standing on the disk face, biased down-slope (-Y)
-// where gravity piles them. Visualization only.
+// Cases resting on the wheel's crown and stacked up the hopper, all lying
+// parallel to the wheel's axis. Positions are eyeballed for the preview.
 CASE_POSITIONS = [
-    [-10, -19], [0, -19], [10, -19],
-    [-20, -10], [-10, -10], [0, -10], [10, -10], [20, -10],
-    [-25, 0], [-15, 0], [-5, 0], [5, 0], [15, 0], [25, 0],
-    [-20, 9], [-10, 9], [0, 9], [10, 9], [20, 9],
+    [-10, 31], [0, 32.8], [10, 31],
+    [-15, 39], [-5, 40.5], [5, 40.5], [15, 39],
+    [-10, 48], [0, 49], [10, 48],
+    [-15, 56], [-5, 57], [5, 57], [15, 56],
 ];
 
 module feeder_assembly() {
     rotate([ASSEMBLY_TILT_DEG, 0, 0]) {
+
         color("SlateGray")
-            drive_hub();
+            translate([0, 0, -BACKPLATE_THICKNESS - GAP])
+                drive_hub();
 
-        color("DimGray", 0.9)
-            translate([0, 0, FACEPLATE_FRONT_Z])
-                mirror([0, 0, 1])
-                    face_plate();
+        color("DimGray")
+            mirror([0, 0, 1])
+                back_plate();
 
-        color("SteelBlue", 0.9)
-            translate([0, 0, DISK_FRONT_Z])
-                mirror([0, 0, 1])
-                    singulator_disk();
+        color("SteelBlue")
+            translate([0, 0, GAP])
+                singulator_disk();
 
+        color("Gainsboro")
+            translate([0, 0, GAP])
+                shroud();
+
+        // The pan's bottom edge sits so the wheel's rim stands proud of it by
+        // RIM_INTRUSION; its base plate is coplanar with the back plate's
+        // front face, so case bases sit on one continuous floor. (In a real
+        // build these two would likely merge into one printed part.)
         color("Wheat", 0.6)
-            translate([0, 0, DISK_FRONT_Z])
+            translate([-HOPPER_WIDTH/2, DISK_OD/2 - RIM_INTRUSION, -HOPPER_BASE_T])
                 hopper();
 
         if (SHOW_CASES) {
-            // Loose cases standing on their bases on the disk face -- this is
-            // the bit that's easy to get wrong: the disk face IS the hopper's
-            // floor, and the cases stand perpendicular to it (so they lean
-            // ~45 degrees in world terms), packed together and pressed
-            // down-slope by gravity.
             color("Goldenrod")
                 for (p = CASE_POSITIONS)
-                    translate([p[0], p[1], DISK_FRONT_Z])
+                    translate([p[0], p[1], 0])
                         case_model();
 
-            // The one case that's dropped into the pocket -- sunk by the full
-            // socket depth, sitting on the face plate behind the disk. It
-            // rides around like this until the pocket reaches the face
-            // plate's discharge cutout, then falls through.
-            color("Orange")
-                translate([POCKET_ORBIT_R * cos(DISCHARGE_ANGLE),
-                           POCKET_ORBIT_R * sin(DISCHARGE_ANGLE),
-                           DISK_FRONT_Z - DISK_THICKNESS])
-                    case_model();
+            // One case captured in a scallop, part way round to the discharge
+            color("OrangeRed")
+                rotate([0, 0, 170])
+                    translate([POCKET_ORBIT_R, 0, 0])
+                        case_model();
         }
     }
 }

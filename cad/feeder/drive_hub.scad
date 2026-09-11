@@ -6,9 +6,9 @@
 // without tools: 3 drive pins carry the rotational torque, 3 embedded magnets
 // hold the disk on axially. See docs/DESIGN.md "Hopper + singulator disk".
 //
-// Coordinate convention (shared with singulator_disk.scad and face_plate.scad):
+// Coordinate convention (shared with singulator_disk.scad and back_plate.scad):
 // Z=0 is the hub's front face -- the plane the disk interfaces against once
-// the pins/boss have crossed the face plate's clearance gap. The hub body
+// the pins/boss have crossed the back plate's clearance gap. The hub body
 // extends in -Z (toward the motor); the boss, pins, and this face's magnets
 // project/sit at Z>=0.
 //

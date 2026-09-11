@@ -7,12 +7,12 @@ Parametric, text-based CAD for the printed parts. [Install OpenSCAD](https://ope
 
 - [`lib/dimensions.scad`](lib/dimensions.scad) — single source of truth for every measurement.
   Every part file includes this instead of hard-coding numbers, so parts that need to fit each
-  other (hub ↔ disk ↔ face plate) are guaranteed to match by construction. **Change a value here,
+  other (hub ↔ wheel ↔ back plate) are guaranteed to match by construction. **Change a value here,
   not in a part file**, and re-render everything that depends on it.
 - [`lib/shapes.scad`](lib/shapes.scad) — small reusable helpers (D-shaft profile, bolt-circle
   placement).
-- [`feeder/`](feeder) — the feed subsystem: hopper, singulator disk, face plate, drive hub. See
-  [`docs/DESIGN.md`](../docs/DESIGN.md) "Hopper + singulator disk" for how these fit together
+- [`feeder/`](feeder) — the feed subsystem: hopper, singulator wheel, back plate, shroud, drive hub.
+  See [`docs/DESIGN.md`](../docs/DESIGN.md) "Hopper + singulator wheel" for how these fit together
   mechanically.
 
 ## Currently modeled (feeder subsystem, .223 Rem / 5.56 NATO prototype)
@@ -20,10 +20,11 @@ Parametric, text-based CAD for the printed parts. [Install OpenSCAD](https://ope
 | File | Part | Print material |
 |---|---|---|
 | [`feeder/drive_hub.scad`](feeder/drive_hub.scad) | Motor-side hub — mounts once on the 5mm D-shaft | PETG/nylon |
-| [`feeder/singulator_disk.scad`](feeder/singulator_disk.scad) | Swappable pocket disk — one per case-family | PETG/nylon |
-| [`feeder/face_plate.scad`](feeder/face_plate.scad) | Stationary plate, blocks the pocket except at the discharge cutout | PETG/nylon |
-| [`feeder/hopper.scad`](feeder/hopper.scad) | V-mouth hopper, non-precision | PLA/PETG |
-| [`feeder/feeder_assembly.scad`](feeder/feeder_assembly.scad) | Combined preview of all four, tilted ~45° — **not** something you print or export as one piece; print each part from its own file | — |
+| [`feeder/singulator_disk.scad`](feeder/singulator_disk.scad) | Swappable scalloped-rim wheel — one per case-family | PETG/nylon |
+| [`feeder/back_plate.scad`](feeder/back_plate.scad) | Stationary plate the case bases ride on, carries the discharge hole | PETG/nylon |
+| [`feeder/shroud.scad`](feeder/shroud.scad) | Arc wall holding cases in their scallops; where it ends is the release point | PETG/nylon |
+| [`feeder/hopper.scad`](feeder/hopper.scad) | Flat-backed pan, converging sides, non-precision | PLA/PETG |
+| [`feeder/feeder_assembly.scad`](feeder/feeder_assembly.scad) | Combined preview of all five, tilted ~45° — **not** something you print or export as one piece; print each part from its own file | — |
 
 Not yet modeled: the holder swing arm, shelf, insert cup, coil mount bracket, and drop chute (the
 rest of the column below the feeder) — next after this subsystem is validated on the bench.
@@ -47,8 +48,8 @@ openscad -o renders/drive_hub.png --render --imgsize=900,900 feeder/drive_hub.sc
 
 1. Open `feeder/feeder_assembly.scad` in OpenSCAD first to see how the pieces relate spatially and
    confirm nothing looks obviously wrong (gaps, overlaps).
-2. Open each part file individually (`drive_hub.scad`, `singulator_disk.scad`, `face_plate.scad`,
-   `hopper.scad`) to inspect and export it — each file renders just that one part when opened
+2. Open each part file individually (`drive_hub.scad`, `singulator_disk.scad`, `back_plate.scad`,
+   `shroud.scad`, `hopper.scad`) to inspect and export it — each file renders just that one part when opened
    directly.
 3. **Export STL**: Design → Render (F6), then File → Export → Export as STL.
 4. Before printing full-size parts, print small test coupons for the two fits that actually matter
@@ -75,8 +76,8 @@ openscad -o renders/drive_hub.png --render --imgsize=900,900 feeder/drive_hub.sc
 ## .223 Rem is the first prototype family, not the only one
 
 `dimensions.scad`'s case-dimension block (`CASE_LENGTH`, `CASE_RIM_D`, etc.) is set for .223 Rem /
-5.56 NATO — the reference caliber picked for this first prototype. Only `POCKET_HOLE_D` (in the
-singulator disk) actually depends on these values; the hub/disk mounting interface is identical
+5.56 NATO — the reference caliber picked for this first prototype. Only `POCKET_D` (the rim
+scallop on the singulator wheel) actually depends on these values; the hub/disk mounting interface is identical
 across every case family, so every future family's disk will pop onto the same hub. To add another
 family, copy the case-dimension block with that family's real numbers and re-render
 `singulator_disk.scad`.

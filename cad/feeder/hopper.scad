@@ -1,94 +1,84 @@
-// Hopper -- an open, flared scoop that holds a loose pile of cases standing on
-// their bases directly against the singulator disk's face.
+// Hopper -- a flat-backed pan, open at the top for loading and at the bottom
+// where it feeds the singulator wheel.
 //
-// Modeled on the ARC Precision / ADG annealer's feeder (see the reference
-// photos discussed in docs/DESIGN.md). The key point, which is easy to get
-// wrong: THE DISK FACE IS THIS HOPPER'S FLOOR. There is no separate bottom
-// here. Cases are dumped in loose and stand packed together on their bases
-// against the spinning disk, all roughly parallel, their axes perpendicular
-// to the disk face. The whole assembly leans ~45 degrees so gravity does two
-// jobs at once: it presses the case bases flat against the disk face (so a
-// base can drop straight into a pocket as it passes), and it shuffles the
-// pile down-slope so cases keep feeding toward the pickup zone.
+// Geometry is Cody's, kept as written; the parameters below are just wired up
+// to dimensions.scad where they have to agree with the wheel.
 //
-// Structure, bottom to top:
-//   - a straight collar at disk diameter, which retains the case bases over
-//     the disk face and keeps the pile from spilling off the down-slope edge
-//   - a flared mouth above it, which holds the bulk of the pile
-//   - a big angled scoop cut through the up-slope side, so cases can be poured
-//     in and the pile is visible -- this is what gives the real unit its
-//     "batwing" silhouette, two pointed wings either side of an open scoop
+// How it works: cases stand base-down on the base plate, sticking out the
+// open front, with the walls constraining them laterally near their bases.
+// The whole pan leans back, so the pile slides down the base plate and the
+// sides -- converging at feedAngle -- funnel it into the bottom outlet. The
+// singulator wheel's rim sits in that outlet, so the bottom of the pile rests
+// on the wheel's tread: the wheel's cylindrical SIDE is the floor at the
+// outlet, and a rim scallop coming round takes one case off the pile.
 //
-// Non-precision part: nothing here needs a tight fit (unlike the
-// disk/face-plate/hub interface), so treat these numbers as a starting point
-// for bench iteration on pickup reliability, not a fixed spec.
+// Note the pan is deliberately shallower than a case is long -- a case is
+// supported over the pan's depth and overhangs out the open front. hopperDepth
+// is tied to DISK_THICKNESS so the walls and the wheel's tread cradle the case
+// over the same span.
 //
 // Open this file directly in OpenSCAD to preview just the hopper.
 
 include <../lib/dimensions.scad>
 
-HOPPER_WALL       = 2.5;
-HOPPER_CLEAR      = 0.5;                       // radial clearance so the spinning disk never rubs the collar
-HOPPER_BASE_D     = DISK_OD + 2*HOPPER_CLEAR;  // inner diameter where the hopper meets the disk
-HOPPER_COLLAR_H   = 14;                        // straight retaining wall around the case bases
-HOPPER_MOUTH_D    = 150;                       // flared mouth -- sets how big a pile it holds
-HOPPER_FLARE_H    = 80;
-HOPPER_SCOOP_ANG  = 38;                        // how steeply the loading scoop's floor slopes
-HOPPER_SCOOP_Z    = 16;                        // how far up the wall the scoop cut starts
-HOPPER_SCOOP_SECTOR = 150;                     // angular width of the scoop opening, centered up-slope (+Y).
-                                                // The rest of the circumference keeps full height: a tall
-                                                // retaining wall down-slope where the pile sits, and the two
-                                                // pointed "wings" either side of the opening.
+// Values come from dimensions.scad so the assembly places this pan against the
+// wheel using the same numbers the pan is built from.
+wallThickness      = HOPPER_WALL_T;
+baseThickness      = HOPPER_BASE_T;
+hopperHeight       = HOPPER_HEIGHT;
+hopperDepth        = HOPPER_DEPTH;
+feedAngle          = HOPPER_FEED_ANGLE;
+hopperWidth        = HOPPER_WIDTH;
+singulatorDiameter = DISK_OD;   // the bottom outlet is a circular notch the wheel's rim sits in
+rimIntrusion       = RIM_INTRUSION;
 
-// Hollow frustum: a conical wall of constant thickness, open at both ends.
-// d1_in/d2_in are INNER diameters at the bottom and top.
-module conical_shell(d1_in, d2_in, h, wall) {
-    difference() {
-        cylinder(d1 = d1_in + 2*wall, d2 = d2_in + 2*wall, h = h);
-        translate([0, 0, -1])
-            cylinder(d1 = d1_in, d2 = d2_in, h = h + 2);
-    }
-}
+// Triangle cutout that converges the lower sides down to the outlet
+angleY = 0.3 * hopperHeight;
+angleX = angleY * tan(feedAngle);
 
-// Pie-slice solid of `sector` degrees, centered on +Y, used to limit the
-// scoop cut to the up-slope side instead of slicing all the way around.
-module pie_wedge(sector, r, h) {
-    rotate([0, 0, 90 - sector/2])
-        rotate_extrude(angle = sector)
-            square([r, h]);
-}
+p0 = [0, angleY];
+p1 = [0, hopperHeight];
+p2 = [hopperWidth, hopperHeight];
+p3 = [hopperWidth, angleY];
+p4 = [(hopperWidth - angleX), 0];
+p5 = [angleX, 0];
+points = [p0, p1, p2, p3, p4, p5];
 
 module hopper() {
-    big = 400;  // oversized cutting solid
-
     difference() {
-        union() {
-            // Retaining collar, straight at disk diameter
-            conical_shell(HOPPER_BASE_D, HOPPER_BASE_D, HOPPER_COLLAR_H, HOPPER_WALL);
+        difference() {
+            difference() {
+                linear_extrude(height = hopperDepth)
+                    polygon(points);
+                // hollow it out, leaving the base plate and perimeter walls
+                translate([0, 0, baseThickness])
+                    linear_extrude(height = (hopperHeight - baseThickness))
+                        offset(r = -(wallThickness))
+                            polygon(points);
+            }
 
-            // Flared mouth
-            translate([0, 0, HOPPER_COLLAR_H])
-                conical_shell(HOPPER_BASE_D, HOPPER_MOUTH_D, HOPPER_FLARE_H, HOPPER_WALL);
+            // Open the bottom: a circular notch the wheel's rim sits in, so
+            // the exposed tread becomes the floor under the bottom of the
+            // pile. The circle's center sits below the hopper's bottom edge by
+            // (radius - rimIntrusion), which is what makes the rim stand proud
+            // by exactly rimIntrusion.
+            //
+            // Two things to watch if you edit this, both of which bit the
+            // first draft: linear_extrude takes `height`, not `depth` (with
+            // `depth` it silently falls back to a default and warns), and a
+            // translate inside linear_extrude acts on a 2D shape, so a Z term
+            // there does nothing -- translate the extruded solid instead.
+            translate([hopperWidth/2,
+                       -(singulatorDiameter/2 - rimIntrusion),
+                       baseThickness])
+                linear_extrude(height = hopperDepth - baseThickness + 1)
+                    circle(d = singulatorDiameter);
         }
-
-        // Loading scoop. Two solids intersected: a tilted half-space (so the
-        // scoop's floor slopes rather than being a flat shelf) limited to a
-        // pie wedge on the up-slope (+Y) side. Without the wedge the cut runs
-        // right around the rim and saddles the whole hopper; with it, the
-        // down-slope wall stays full height where gravity piles the cases,
-        // and the two sides are left as the pointed wings.
-        //
-        // +Y is up-slope because DISCHARGE_ANGLE (270, i.e. -Y) is the
-        // down-slope direction once feeder_assembly.scad applies the tilt.
-        intersection() {
-            translate([0, 0, HOPPER_SCOOP_Z])
-                pie_wedge(HOPPER_SCOOP_SECTOR, big, big);
-
-            translate([0, 0, HOPPER_SCOOP_Z])
-                rotate([HOPPER_SCOOP_ANG, 0, 0])
-                    translate([-big/2, 0, -big/2])
-                        cube([big, big, big]);
-        }
+        // open the top -- loading
+        translate([wallThickness, (hopperHeight - wallThickness) - 1, baseThickness])
+            cube([(hopperWidth - (2*wallThickness)),
+                  (wallThickness + 2),
+                  (hopperDepth - baseThickness + 1)]);
     }
 }
 

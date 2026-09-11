@@ -27,12 +27,13 @@ getting one of these assumptions wrong later costs a reprinted insert, not a red
 
 One column, top to bottom (see diagram):
 
-1. **Hopper** — a wide V-trough, loosely filled with loose cases in bulk (no hand-orienting; they
-   settle roughly base-down against the trough walls).
-2. **Singulator disk** — a single-pocket disk, tilted ~45° at the hopper's throat and driven by the
-   feeder stepper, catches one case at a time (rim-first, into a through-hole) as it rotates under
-   the jumbled pile, rides on a stationary face plate until its pocket reaches a discharge cutout,
-   then drops the case down a short chute into the holder below.
+1. **Hopper** — a flat-backed pan leaning ~45°, loosely filled with cases in bulk (no
+   hand-orienting). They stand base-down on its base plate and slide toward the bottom outlet.
+2. **Singulator wheel** — a scalloped-rim wheel driven by the feeder stepper, its rim sitting in
+   the outlet so its cylindrical side is the floor under the pile. It rotates under
+   the outlet, takes one case off the bottom of the pile into a rim scallop, and — held in by a
+   shroud, its base sliding on the back plate — carries it round to the discharge, where it drops
+   down a short chute into the holder below.
 3. **Coil zone** — the case's neck/shoulder ("cook zone") sits inside the induction coil, supported
    from below by a shelf mounted on the swing arm.
 4. **Swing arm** — rotates about a vertical pivot, in the horizontal plane, between two servo-
@@ -83,48 +84,47 @@ commands per case").
   press-fit shoulder into a shallow recess on the shelf, sized for a firm hand-press fit in PETG
   (no fasteners needed — it's a tool-less swap between range sessions).
 
-### Hopper + singulator disk
+### Hopper + singulator wheel
 
-This is modeled directly on a real reference (ARC Precision's ARC Ultimate annealer): a wide
-V-trough hopper feeds a rotating, tilted pocket disk that both singulates and reorients cases in
-one mechanism. **CAD**: [`cad/feeder/`](../cad/feeder) (OpenSCAD, sized for a .223 Rem/5.56 NATO
-first prototype) — see [`cad/README.md`](../cad/README.md) before printing.
+Modeled on a real reference (ARC Precision / ADG's ARC Ultimate annealer): a leaning, flat-backed
+hopper pan feeds a scalloped-rim wheel that singulates cases off the bottom of the pile. **CAD**:
+[`cad/feeder/`](../cad/feeder) (OpenSCAD, sized for a .223 Rem/5.56 NATO first prototype) — see
+[`cad/README.md`](../cad/README.md) before printing.
 
-- **Hopper**: an open, flared scoop leaning at roughly 45°, with the singulator disk forming its
-  floor. **There is no separate hopper bottom — the disk face itself is what the cases stand on.**
-  Cases are dumped in loose (no hand-orienting) and stand packed together on their bases directly
-  against the spinning disk, all roughly parallel, their axes perpendicular to the disk face. The
-  45° lean does two jobs at once: it presses the case bases flat against the disk face (so a base
-  can drop straight into a pocket as it passes), and it shuffles the pile down-slope so cases keep
-  feeding toward the pickup zone. The scoop is open on the up-slope side for loading and visibility
-  — gravity holds the pile down-slope, so an open uphill face costs nothing. That opening is what
-  gives the reference unit its "batwing" silhouette: two pointed wings either side of the scoop,
-  with a full-height retaining wall down-slope where the pile actually sits.
-- **Singulator disk**: a flat disk with a **single through-hole pocket**, mounted on a shaft tilted
-  with the hopper (~45°) and driven by the existing feeder stepper (`SELECT_FEEDER_MOTOR`). Because
-  the cases stand base-down on this disk's face, a case whose base happens to be over the pocket as
-  it passes drops straight in — entry is axial, along the pocket's own axis, which is why the cases
-  standing *perpendicular to the tilted face* (rather than vertically) is the detail that makes the
-  whole thing work. Cases not over the pocket simply stay standing on the disk face and get shuffled
-  along — no separate reject mechanism needed, this rejects itself.
-- **Pocket depth** is the disk's thickness, and it's load-bearing in a way that isn't obvious: the
-  pocket has to hold a case upright against its own tipping moment while the disk carries it to the
-  discharge. A 44.7mm .223 case in a 5mm-deep socket at 45° would likely flop; the current disk is
-  10mm for that reason. Expect to tune this on the bench — it's the first number to change if cases
-  tip or hang up.
-- **Stationary face plate**: sits directly behind the disk (same tilt), supporting a captured case
-  from below/behind as the disk carries it around — otherwise it would just fall straight through
-  the pocket immediately. The face plate has one **discharge cutout**; when the pocket's rotation
-  brings it over that cutout, the case is no longer supported and drops down the chute below into
-  the holder.
-- **Open-loop timing**: the firmware only needs to run the disk long enough to guarantee the pocket
-  passes both the hopper zone and the discharge cutout at least once
+- **Hopper**: a flat-backed pan, leaning back at roughly 45°, open at the top for loading and at
+  the bottom where it feeds the wheel. Cases are dumped in loose (no hand-orienting) and stand
+  base-down on the pan's base plate, sticking out of its open front; the walls constrain them
+  laterally near their bases. The lean makes the pile slide down the base plate, and the pan's
+  lower sides — converging at a `feedAngle` of 30° — funnel it into the bottom outlet.
+- **The wheel's rim sits in that outlet, and its cylindrical *side* is the floor the bottom of the
+  pile rests on.** This is the detail that makes the whole mechanism work, and it's easy to get
+  wrong: the cases do not stand on the wheel's *face*, and the capture feature is not a hole
+  through the face. They rest against the wheel's tread, and the pockets are scallops in its edge.
+- **Singulator wheel**: driven by the existing feeder stepper (`SELECT_FEEDER_MOTOR`), with
+  **half-round scallops cut into its rim**. Cases lie parallel to the wheel's axis, so a case and a
+  scallop are two parallel cylinders — the case nests into the notch exactly. A scallop coming round
+  under the outlet takes one case off the bottom of the pile; the rest of the pile just keeps
+  resting on the smooth tread, so the mechanism rejects surplus cases by itself with no separate
+  mechanism.
+- **Tread width** (the wheel's thickness) sets how much of a case's length is cradled. The case
+  overhangs it considerably — 20mm of tread under a 44.7mm case — so the hopper walls and back
+  plate do the rest of the work of keeping it from skewing. Widening the tread is the first thing to
+  try if cases cock or jam.
+- **Back plate**: the hopper's floor continued underneath the wheel. It's what the case *base* rides
+  on — so the plate does the axial job and the rim scallop does the lateral one. A case carried
+  round keeps its base sliding on this plate until it reaches the plate's discharge hole.
+- **Shroud**: an arc wall following the rim at a small clearance, from just past the outlet round to
+  the discharge. Without it a captured case would simply roll back out of its scallop as the wheel
+  turned away from the pile. **Where the shroud ends is the release point** — the case is no longer
+  held, and drops through the discharge hole into the chute.
+- **Open-loop timing**: the firmware only needs to run the wheel long enough to guarantee a scallop
+  passes both the hopper outlet and the discharge at least once
   (`feed_run_time_ms`/`feed_speed_rps` in `profile.c`) — no feed-confirmation sensor needed, matching
-  the brief. One real caveat worth flagging: because pickup is a matter of chance (a case has to
-  happen to be sitting over the pocket when it passes under the pile), a single-pocket disk won't
-  guarantee a catch on every single rotation the way a fully-constrained mechanism would — expect
-  an occasional feed cycle that comes up empty, on top of the case-missing-the-holder risk the
-  brief already calls out as unaddressed by sensing.
+  the brief. One real caveat worth flagging: pickup still isn't guaranteed — a case has to actually
+  settle into a scallop as it passes under the pile, and a near-empty hopper or a bridged pile can
+  let a scallop go by empty. Expect the occasional feed cycle that delivers nothing, on top of the
+  case-missing-the-holder risk the brief already calls out as unaddressed by sensing. More scallops
+  round the rim (`POCKET_COUNT`) buys margin here, since a cycle then gets several chances.
 - **Case-family handling**: the disk is a **swappable part per case-family** (pocket diameter sized
   to that family's rim/head diameter) — same four-family grouping as the holder inserts below. It
   mounts on a quick-change hub rather than being keyed directly to the motor shaft: the hub's grub
@@ -132,12 +132,11 @@ first prototype) — see [`cad/README.md`](../cad/README.md) before printing.
   disk itself pops on/off tool-lessly via 3 drive pins (torque) and 3 embedded magnets (axial
   retention) — swapping calibers doesn't mean fighting a grub screw each time. See
   [`cad/feeder/drive_hub.scad`](../cad/feeder/drive_hub.scad) and
-  [`cad/feeder/singulator_disk.scad`](../cad/feeder/singulator_disk.scad). ARC's real unit uses one
-  disk with multiple pocket sizes around its rim instead; that's a viable upgrade path later, but a
-  swappable single-pocket disk is a simpler first part to get right in FDM.
+  [`cad/feeder/singulator_disk.scad`](../cad/feeder/singulator_disk.scad).
 - This subsystem is explicitly the least mature part of this design — the brief calls the feed
-  mechanism "not yet designed," and pickup reliability (hopper angle, disk tilt, pocket depth) is
-  exactly the kind of thing that needs bench iteration against real cases, not more drawing.
+  mechanism "not yet designed," and pickup reliability (hopper lean, scallop count and depth, tread
+  width) is exactly the kind of thing that needs bench iteration against real cases, not more
+  drawing.
 
 ### Coil mount
 
@@ -219,8 +218,7 @@ any sane design.
 
 ## Materials and fabrication (FDM)
 
-- **Near the coil** (holder shelf, insert cups, singulator disk, face plate, coil mount bracket,
-  drop chute): use **PETG or nylon**, not PLA/ABS. These parts sit closest to a part that gets hot
+- **Near the coil** (holder shelf, insert cups, coil mount bracket, drop chute): use **PETG or nylon**, not PLA/ABS. These parts sit closest to a part that gets hot
   and radiates during dwell; PLA softens around 60°C and ABS around 100°C, both low enough to be a
   real concern this close to an induction-heated case. PETG (~80°C HDT) is the practical minimum;
   nylon is better if you see any softening in testing.

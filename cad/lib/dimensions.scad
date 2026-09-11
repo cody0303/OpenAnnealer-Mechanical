@@ -1,5 +1,5 @@
 // Shared dimensions for the OpenAnnealer feeder subsystem (hopper + singulator
-// disk + face plate + drive hub). Single source of truth: every part file
+// wheel + back plate + drive hub). Single source of truth: every part file
 // includes this instead of hard-coding numbers, so the hub/disk/face-plate
 // interface is guaranteed to fit by construction. Change a value here and
 // re-render everything rather than hand-editing a derived number downstream.
@@ -33,31 +33,72 @@ CLEARANCE_PRESS = -0.10; // negative = interference, for press-fit magnet pocket
 // ---------------------------------------------------------------------------
 // Singulator disk
 // ---------------------------------------------------------------------------
-DISK_OD        = 72;
-DISK_THICKNESS = 10;  // doubles as the pocket's socket depth. A case rides the disk standing on its base,
-                       // perpendicular to a face that's tilted ~45 degrees, so the pocket has to be deep
-                       // enough to hold it upright against its own tipping moment on the way to the
-                       // discharge -- 5mm was almost certainly too shallow for a 44.7mm .223 case.
-                       // Prime bench-test variable: if cases tip or hang up, this is the first number to
-                       // change. (The reference ARC unit appears to stack rings behind its disk, which
-                       // would be one way to tune this per case length without reprinting the disk.)
+// Wheel diameter is squeezed from two directions, so it can't be picked freely:
+//   - scallop spacing: to leave as much rim material between scallops as each scallop is wide,
+//     you need pi*DISK_OD >= 2 * POCKET_COUNT * POCKET_D. At POCKET_D 10.4 that's DISK_OD >= 40
+//     for 6 scallops, >= 27 for 4, >= 20 for 3.
+//   - the quick-change hub: a scallop cuts POCKET_D/2 into the rim, and the hub's magnet circle
+//     needs MAGNET_ORBIT_R + MAGNET_D/2 of clear radius inside that. With the current hub that
+//     puts a hard floor of about DISK_OD >= 49 (see the assertion at the bottom of this file).
+// So a ~20mm singulator wheel is not compatible with this magnetic quick-change hub -- it would
+// need a smaller hub interface (smaller magnets on a tighter circle), at the cost of grip.
+DISK_OD        = 56;
+DISK_THICKNESS = 20;  // the wheel's TREAD WIDTH -- how much of a case's length the scallop cradles. The case
+                       // lies parallel to the wheel's axis and overhangs both this and the back plate, so a
+                       // wider tread cradles it more stably. Kept equal to HOPPER_DEPTH so the hopper's walls
+                       // and the wheel's tread support the case over the same span.
 
-POCKET_ORBIT_R = 27;                                // radius from the rotation axis to the pocket hole's center
-POCKET_HOLE_D  = CASE_RIM_D + 2*CLEARANCE_LOOSE;     // clears the case rim -- this hole does NOT catch the case;
-                                                      // the face plate below does. See docs/DESIGN.md "Hopper +
-                                                      // singulator disk".
+// Scallops are cut into the wheel's RIM, not through its face: a case lying parallel to the wheel's axis
+// nests into a half-round notch of the same axis orientation. Cases ride on the tread (the wheel's
+// cylindrical side IS the hopper's floor at the outlet) until a scallop comes round and takes one.
+POCKET_D       = CASE_RIM_D + 2*CLEARANCE_LOOSE;  // scallop diameter -- clears the case's largest section
+POCKET_ORBIT_R = DISK_OD / 2;   // scallop centers sit exactly on the rim, so each is a half-round bite. Moving
+                                 // this inward would grip harder but the case could then only leave axially.
+POCKET_COUNT   = 6;             // the reference wheel is scalloped all the way round; 1 also works (the rest of
+                                 // the tread is just smooth floor for the pile) but feeds far slower.
 
 // ---------------------------------------------------------------------------
-// Face plate (stationary) -- blocks the pocket everywhere except one cutout
+// Back plate (stationary) -- the surface case bases ride on
+//
+// This is the hopper's floor continued underneath the wheel. A case stands
+// base-down on it, is captured laterally by a rim scallop, and rides round
+// with its base sliding on this plate until it reaches the discharge hole and
+// drops through.
 // ---------------------------------------------------------------------------
-FACEPLATE_OD             = 76;
-FACEPLATE_THICKNESS      = 4;
-FACEPLATE_CLEARANCE_GAP  = 0.5;   // running clearance between the disk's back face and the face plate's front face
-FACEPLATE_CENTER_CLEAR_D = 36;    // central clearance hole the hub's pins/magnets/boss pass through unblocked
-DISCHARGE_CUTOUT_D       = POCKET_HOLE_D + 2.5;  // bigger than the pocket hole for rotational alignment slop
-DISCHARGE_ANGLE          = 270;   // degrees, this part's local frame -- chosen so that, given the X-axis tilt
-                                   // feeder_assembly.scad applies, this angle actually ends up lowest (real
-                                   // "downhill" direction), rather than being an arbitrary illustrative choice
+BACKPLATE_OD             = DISK_OD + 16;
+BACKPLATE_THICKNESS      = 4;
+BACKPLATE_CLEARANCE_GAP  = 0.5;   // running clearance between the wheel's back face and the plate
+BACKPLATE_CENTER_CLEAR_D = 36;    // central clearance the hub's pins/magnets/boss pass through unblocked
+DISCHARGE_CUTOUT_D       = POCKET_D + 2.5;  // bigger than the scallop, for rotational alignment slop
+DISCHARGE_ANGLE          = 250;   // degrees. Pickup happens where the hopper's outlet meets the rim (top of
+                                   // the wheel); this is far enough round that the shroud has carried the case
+                                   // clear of the pile before letting it drop.
+
+// ---------------------------------------------------------------------------
+// Hopper -- flat-backed pan (geometry is Cody's; see hopper.scad).
+//
+// These live here rather than in hopper.scad because feeder_assembly.scad
+// needs them to place the pan against the wheel, and a duplicated copy in the
+// assembly file silently went stale once already.
+// ---------------------------------------------------------------------------
+HOPPER_WALL_T  = 2;
+HOPPER_BASE_T  = 3;
+HOPPER_HEIGHT  = 50;
+HOPPER_DEPTH   = DISK_THICKNESS;  // matches the wheel's tread width
+HOPPER_MARGIN  = 12;              // material either side of the wheel at the outlet
+HOPPER_WIDTH   = DISK_OD + 2*HOPPER_MARGIN;
+HOPPER_FEED_ANGLE = 30;           // convergence of the pan's lower sides down to the outlet
+RIM_INTRUSION  = 4;               // how far the wheel's rim stands proud of the hopper's bottom edge --
+                                   // this is the exposed tread the bottom of the pile rests on
+
+// ---------------------------------------------------------------------------
+// Shroud -- wraps the rim so a captured case can't fall out of its scallop
+// between pickup and discharge. Where the shroud ends IS the release point.
+// ---------------------------------------------------------------------------
+SHROUD_CLEAR       = 1.0;   // radial clearance over the captured case
+SHROUD_THICKNESS   = 3;
+SHROUD_START_ANGLE = 100;   // just past the hopper outlet at the top of the wheel (90 degrees)
+SHROUD_END_ANGLE   = DISCHARGE_ANGLE;
 
 // ---------------------------------------------------------------------------
 // Motor-side quick-change hub
@@ -70,7 +111,7 @@ DISCHARGE_ANGLE          = 270;   // degrees, this part's local frame -- chosen 
 DSHAFT_D          = 5.0;   // NEMA17 5mm D-shaft
 DSHAFT_FLAT_DEPTH = 0.5;   // how far the flat is cut in from the full-diameter edge (typical for a 5mm D-shaft;
                             // measure yours -- this varies by manufacturer)
-HUB_OD            = 40;    // hub body, sits behind the face plate -- does not need to pass through anything
+HUB_OD            = 40;    // hub body, sits behind the back plate -- does not need to pass through anything
                             // (must fully contain the magnet pockets below -- see assertion at the bottom
                             // of this file; a render caught this too small at 30mm, the pockets broke
                             // through the outer wall)
@@ -81,11 +122,11 @@ HUB_SETSCREW_D    = 2.6;   // pilot for an M3 thread-forming screw (drill/tap af
 ENGAGEMENT_DEPTH = 4;  // how far the boss/pins reach into the disk's back face -- shared so both bottom out together
 
 PILOT_BOSS_D   = 8;    // centers the disk on the hub
-PILOT_BOSS_LEN = FACEPLATE_THICKNESS + 2*FACEPLATE_CLEARANCE_GAP + ENGAGEMENT_DEPTH;  // face plate + both running
-                                                                                        // gaps + engagement
+PILOT_BOSS_LEN = BACKPLATE_THICKNESS + 2*BACKPLATE_CLEARANCE_GAP + ENGAGEMENT_DEPTH;  // back plate + both running
+                                                                                       // gaps + engagement
 
 DRIVE_PIN_D       = 3.0;
-DRIVE_PIN_LEN     = FACEPLATE_THICKNESS + 2*FACEPLATE_CLEARANCE_GAP + ENGAGEMENT_DEPTH;
+DRIVE_PIN_LEN     = BACKPLATE_THICKNESS + 2*BACKPLATE_CLEARANCE_GAP + ENGAGEMENT_DEPTH;
 DRIVE_PIN_ORBIT_R = 12;
 DRIVE_PIN_COUNT   = 3;
 
@@ -99,24 +140,22 @@ MAGNET_ANGLE_OFFSET = 60;    // rotates the magnet circle relative to the pin ci
 
 // ---------------------------------------------------------------------------
 // Sanity checks -- these catch a future dimension edit that would silently
-// break the fit (e.g. shrinking the face plate's clearance hole until it
+// break the fit (e.g. shrinking the back plate's clearance hole until it
 // clips the magnets, or growing the pocket orbit until it exits the disk).
 // If OpenSCAD throws one of these, a value above needs to change, not this
 // assertion.
 // ---------------------------------------------------------------------------
-assert(MAGNET_ORBIT_R + MAGNET_D/2 < FACEPLATE_CENTER_CLEAR_D/2,
-    "drive hub magnets must fit inside the face plate's central clearance hole");
-assert(DRIVE_PIN_ORBIT_R + DRIVE_PIN_D/2 < FACEPLATE_CENTER_CLEAR_D/2,
-    "drive pins must fit inside the face plate's central clearance hole");
+assert(MAGNET_ORBIT_R + MAGNET_D/2 < BACKPLATE_CENTER_CLEAR_D/2,
+    "drive hub magnets must fit inside the back plate's central clearance hole");
+assert(DRIVE_PIN_ORBIT_R + DRIVE_PIN_D/2 < BACKPLATE_CENTER_CLEAR_D/2,
+    "drive pins must fit inside the back plate's central clearance hole");
 assert(PILOT_BOSS_D/2 < DRIVE_PIN_ORBIT_R - DRIVE_PIN_D/2,
     "pilot boss must not overlap the drive pin circle");
 assert(MAGNET_ORBIT_R + MAGNET_D/2 < HUB_OD/2 - 2,
     "hub magnet pockets must stay well inside the hub body's outer wall (2mm min) -- caught a real print-breaking bug here once already");
 assert(DRIVE_PIN_ORBIT_R + DRIVE_PIN_D/2 < HUB_OD/2 - 2,
     "hub drive pins must stay well inside the hub body's outer wall (2mm min)");
-assert(POCKET_ORBIT_R - POCKET_HOLE_D/2 > FACEPLATE_CENTER_CLEAR_D/2,
-    "pocket hole's inner edge must clear the face plate's central hole, so it stays over solid blocking material");
-assert(POCKET_ORBIT_R + POCKET_HOLE_D/2 < DISK_OD/2 - 2,
-    "pocket hole must stay well inside the disk's outer edge (2mm min rim)");
-assert(POCKET_ORBIT_R + DISCHARGE_CUTOUT_D/2 < FACEPLATE_OD/2 - 2,
-    "discharge cutout must stay well inside the face plate's outer edge (2mm min rim)");
+assert(POCKET_ORBIT_R - POCKET_D/2 > MAGNET_ORBIT_R + MAGNET_D/2 + 2,
+    "rim scallops must not cut into the wheel's hub-mounting region");
+assert(DISCHARGE_CUTOUT_D/2 < BACKPLATE_OD/2 - DISK_OD/2 + POCKET_D/2,
+    "discharge hole must stay inside the back plate's outer edge");
