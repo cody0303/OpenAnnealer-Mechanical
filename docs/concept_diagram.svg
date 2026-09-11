@@ -2,93 +2,91 @@
   <rect x="0" y="0" width="900" height="620" fill="#ffffff"/>
 
   <!-- ===================== MAIN VIEW: FRONT / CROSS-SECTION ===================== -->
-  <text x="20" y="28" font-size="16" font-weight="bold" fill="#111">Front cross-section (case-holder column)</text>
+  <text x="20" y="28" font-size="16" font-weight="bold" fill="#111">Front view (feed + case-holder column)</text>
 
-  <!-- centerline -->
-  <line x1="230" y1="45" x2="230" y2="560" stroke="#bbb" stroke-width="1" stroke-dasharray="4 4"/>
-
-  <!-- Magazine tube -->
-  <rect x="185" y="50" width="90" height="150" fill="none" stroke="#111" stroke-width="2"/>
-  <text x="285" y="60" font-size="13" fill="#111">Magazine tube</text>
-  <text x="285" y="76" font-size="11" fill="#555">(swappable liner per case-family group)</text>
-
-  <!-- Stacked cases in magazine (simple bottleneck silhouettes) -->
-  <g stroke="#111" stroke-width="1.5" fill="#eef3fb">
-    <path d="M200,185 L260,185 L260,165 L245,155 L215,155 L200,165 Z"/>
-    <path d="M200,150 L260,150 L260,130 L245,120 L215,120 L200,130 Z"/>
-    <path d="M200,115 L260,115 L260,95 L245,85 L215,85 L200,95 Z"/>
-    <path d="M200,80 L260,80 L260,60 L245,50 L215,50 L200,60 Z"/>
+  <!-- Hopper: wide V-trough, loose cases standing roughly upright, jumbled -->
+  <path d="M95,60 L215,150 L165,150 L70,90 Z" fill="none" stroke="#111" stroke-width="2"/>
+  <path d="M255,60 L200,145 L245,150 L295,95 Z" fill="none" stroke="#111" stroke-width="2"/>
+  <g stroke="#111" stroke-width="1.1" fill="#eef3fb">
+    <rect x="128" y="82" width="11" height="24" transform="rotate(8 133 94)"/>
+    <rect x="152" y="70" width="11" height="24" transform="rotate(-6 157 82)"/>
+    <rect x="172" y="90" width="11" height="24" transform="rotate(14 177 102)"/>
+    <rect x="140" y="105" width="11" height="24" transform="rotate(-10 145 117)"/>
+    <rect x="185" y="68" width="11" height="24" transform="rotate(4 190 80)"/>
+    <rect x="160" y="118" width="11" height="24" transform="rotate(6 165 130)"/>
   </g>
-  <text x="285" y="115" font-size="11" fill="#555">cases stacked</text>
-  <text x="285" y="130" font-size="11" fill="#555">base-down</text>
+  <text x="30" y="45" font-size="13" fill="#111">Hopper</text>
+  <text x="245" y="40" font-size="11" fill="#555">loose cases, dumped in bulk —</text>
+  <text x="245" y="54" font-size="11" fill="#555">no hand-orienting; they settle</text>
+  <text x="245" y="68" font-size="11" fill="#555">roughly base-down in the V-trough</text>
 
-  <!-- Escapement / singulator wheel -->
-  <circle cx="230" cy="228" r="34" fill="#fff" stroke="#111" stroke-width="2"/>
-  <path d="M230,194 a34,34 0 0 1 0,68" fill="none" stroke="#111" stroke-width="1"/>
-  <rect x="216" y="196" width="28" height="18" fill="#fff" stroke="#111" stroke-width="1.5"/>
-  <circle cx="230" cy="228" r="4" fill="#111"/>
-  <line x1="264" y1="228" x2="330" y2="228" stroke="#111" stroke-width="1"/>
-  <text x="335" y="220" font-size="13" fill="#111">Singulator / escapement wheel</text>
-  <text x="335" y="236" font-size="11" fill="#555">1 pocket = 1 case per feed cycle</text>
-  <text x="335" y="251" font-size="11" fill="#555">driven by existing feeder stepper</text>
-  <text x="335" y="266" font-size="11" fill="#555">(swappable wheel per case-family)</text>
+  <!-- Tilted singulator disk at the hopper throat, ~45deg -->
+  <ellipse cx="200" cy="172" rx="34" ry="19" fill="#fff" stroke="#111" stroke-width="2" transform="rotate(-20 200 172)"/>
+  <!-- stationary face plate behind the disk (dashed, mostly hidden) with a discharge cutout -->
+  <ellipse cx="200" cy="172" rx="34" ry="19" fill="none" stroke="#999" stroke-width="1.5" stroke-dasharray="3 3" transform="rotate(-20 200 172)"/>
+  <!-- single pocket (through-hole) -->
+  <circle cx="213" cy="181" r="6" fill="#eef3fb" stroke="#111" stroke-width="1.3"/>
+  <line x1="200" y1="172" x2="150" y2="205" stroke="#111" stroke-width="1"/>
+  <text x="255" y="158" font-size="13" fill="#111">Singulator disk (tilted ~45°)</text>
+  <text x="255" y="174" font-size="11" fill="#555">one through-hole pocket, sized to the</text>
+  <text x="255" y="188" font-size="11" fill="#555">case head — catches one case rim-first</text>
+  <text x="255" y="202" font-size="11" fill="#555">as it passes under the hopper; rides on a</text>
+  <text x="255" y="216" font-size="11" fill="#555">stationary face plate (dashed) until the</text>
+  <text x="255" y="230" font-size="11" fill="#555">pocket reaches the plate's discharge cutout</text>
+  <text x="255" y="244" font-size="11" fill="#555">driven by feeder stepper; swap disk per family</text>
 
-  <!-- Drop chute -->
-  <path d="M200,262 L260,262 L250,300 L210,300 Z" fill="none" stroke="#111" stroke-width="2"/>
-  <text x="266" y="285" font-size="11" fill="#555">drop chute</text>
+  <!-- Drop chute from disk discharge down to the coil column -->
+  <path d="M195,198 L235,198 L242,240 L215,258 L190,240 Z" fill="none" stroke="#111" stroke-width="2"/>
+  <text x="255" y="262" font-size="11" fill="#555">drop chute to holder</text>
 
   <!-- Coil mount bracket -->
-  <rect x="150" y="310" width="160" height="110" fill="none" stroke="#111" stroke-width="2" rx="4"/>
+  <rect x="152" y="263" width="160" height="105" fill="none" stroke="#111" stroke-width="2" rx="4"/>
   <g stroke="#c33" stroke-width="2" fill="none">
-    <ellipse cx="230" cy="330" rx="55" ry="8"/>
-    <ellipse cx="230" cy="350" rx="55" ry="8"/>
-    <ellipse cx="230" cy="370" rx="55" ry="8"/>
-    <ellipse cx="230" cy="390" rx="55" ry="8"/>
-    <ellipse cx="230" cy="405" rx="55" ry="8"/>
+    <ellipse cx="232" cy="282" rx="55" ry="8"/>
+    <ellipse cx="232" cy="301" rx="55" ry="8"/>
+    <ellipse cx="232" cy="320" rx="55" ry="8"/>
+    <ellipse cx="232" cy="339" rx="55" ry="8"/>
+    <ellipse cx="232" cy="353" rx="55" ry="8"/>
   </g>
-  <text x="316" y="320" font-size="13" fill="#111">Coil mount bracket</text>
-  <text x="316" y="336" font-size="11" fill="#c33">coil (placeholder — not yet selected)</text>
-  <!-- vertical slot + screw for height adjustment -->
-  <line x1="158" y1="318" x2="158" y2="412" stroke="#111" stroke-width="3" stroke-dasharray="2 4"/>
-  <circle cx="158" cy="345" r="5" fill="#fff" stroke="#111" stroke-width="1.5"/>
-  <text x="316" y="352" font-size="11" fill="#555">slotted mount: coil height field-adjustable</text>
-  <text x="316" y="367" font-size="11" fill="#555">once real coil bore/turns are known</text>
+  <text x="318" y="273" font-size="13" fill="#111">Coil mount bracket</text>
+  <text x="318" y="289" font-size="11" fill="#c33">coil (placeholder — not yet selected)</text>
+  <line x1="160" y1="271" x2="160" y2="360" stroke="#111" stroke-width="3" stroke-dasharray="2 4"/>
+  <circle cx="160" cy="296" r="5" fill="#fff" stroke="#111" stroke-width="1.5"/>
+  <text x="318" y="305" font-size="11" fill="#555">slotted mount: coil height field-adjustable</text>
+  <text x="318" y="320" font-size="11" fill="#555">once real coil bore/turns are known</text>
 
   <!-- Case in cook zone -->
-  <path d="M205,405 L255,405 L255,375 L240,362 L220,362 L205,375 Z" fill="#eef3fb" stroke="#111" stroke-width="2"/>
-  <text x="266" y="385" font-size="11" fill="#111">case held in coil</text>
-  <text x="266" y="399" font-size="11" fill="#111">("cook zone" = neck/shoulder)</text>
+  <path d="M207,357 L257,357 L257,330 L242,318 L222,318 L207,330 Z" fill="#eef3fb" stroke="#111" stroke-width="2"/>
+  <text x="268" y="338" font-size="11" fill="#111">case held in coil</text>
+  <text x="268" y="352" font-size="11" fill="#111">("cook zone" = neck/shoulder)</text>
 
-  <!-- Shelf / swing arm (side-on) -->
-  <line x1="120" y1="418" x2="255" y2="418" stroke="#111" stroke-width="4"/>
-  <!-- dashed = swung-out (drop) position -->
-  <line x1="120" y1="418" x2="255" y2="460" stroke="#999" stroke-width="3" stroke-dasharray="6 4"/>
-  <path d="M260,418 Q290,435 260,455" fill="none" stroke="#999" stroke-width="1.5" marker-end="url(#arrow)"/>
-  <text x="5" y="405" font-size="11" fill="#111">shelf (HOLD,</text>
-  <text x="5" y="418" font-size="11" fill="#111">solid line)</text>
-  <text x="5" y="480" font-size="11" fill="#999">shelf swung</text>
-  <text x="5" y="493" font-size="11" fill="#999">clear (DROP)</text>
+  <!-- Swing arm: SHORT sweep, just clears the coil OD -->
+  <line x1="115" y1="368" x2="257" y2="368" stroke="#111" stroke-width="4"/>
+  <line x1="115" y1="368" x2="253" y2="392" stroke="#999" stroke-width="3" stroke-dasharray="6 4"/>
+  <path d="M262,370 Q278,381 260,395" fill="none" stroke="#999" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="5" y="348" font-size="11" fill="#111">shelf, HOLD</text>
+  <text x="5" y="361" font-size="11" fill="#111">(under coil)</text>
+  <text x="5" y="454" font-size="11" fill="#999">shelf, DROP —</text>
+  <text x="5" y="467" font-size="11" fill="#999">just clear of coil OD</text>
 
   <!-- Pivot post + height-adjust nut -->
-  <rect x="112" y="418" width="16" height="90" fill="none" stroke="#111" stroke-width="2"/>
-  <text x="8" y="440" font-size="10" fill="#111">vertical</text>
-  <text x="8" y="452" font-size="10" fill="#111">pivot</text>
-  <text x="8" y="464" font-size="10" fill="#111">post</text>
+  <rect x="107" y="368" width="16" height="70" fill="none" stroke="#111" stroke-width="2"/>
+  <text x="8" y="396" font-size="10" fill="#111">vertical</text>
+  <text x="8" y="408" font-size="10" fill="#111">pivot</text>
+  <text x="8" y="420" font-size="10" fill="#111">post</text>
 
-  <!-- adjustment stud on the arm -->
-  <line x1="150" y1="418" x2="150" y2="392" stroke="#111" stroke-width="2"/>
-  <rect x="140" y="383" width="20" height="10" fill="#fff" stroke="#111" stroke-width="1.5"/>
-  <text x="266" y="425" font-size="11" fill="#555">shelf height set by thumb-nut on a</text>
-  <text x="266" y="439" font-size="11" fill="#555">stud (manual, per case length —</text>
-  <text x="266" y="453" font-size="11" fill="#555">not firmware-controlled)</text>
-  <text x="266" y="472" font-size="11" fill="#555">case-family insert cup swaps onto</text>
-  <text x="266" y="486" font-size="11" fill="#555">shelf top for rim/groove diameter</text>
+  <line x1="150" y1="368" x2="150" y2="342" stroke="#111" stroke-width="2"/>
+  <rect x="140" y="333" width="20" height="10" fill="#fff" stroke="#111" stroke-width="1.5"/>
+  <text x="268" y="378" font-size="11" fill="#555">shelf height set by thumb-nut on a stud</text>
+  <text x="268" y="392" font-size="11" fill="#555">(manual, per case length — not firmware-set)</text>
+  <text x="268" y="410" font-size="11" fill="#555">case-family insert cup on shelf top</text>
+  <text x="268" y="424" font-size="11" fill="#555">handles rim/groove diameter</text>
 
-  <!-- Funnel + tray -->
-  <path d="M170,505 L290,505 L250,545 L210,545 Z" fill="none" stroke="#111" stroke-width="2"/>
-  <rect x="205" y="545" width="50" height="25" fill="none" stroke="#111" stroke-width="2"/>
-  <text x="300" y="520" font-size="13" fill="#111">Funnel (generous, non-precision)</text>
-  <text x="300" y="558" font-size="13" fill="#111">Quench tray / cup</text>
+  <!-- Drop point, no funnel -->
+  <path d="M232,438 L232,470" stroke="#999" stroke-width="2" stroke-dasharray="4 4" marker-end="url(#arrow)"/>
+  <text x="248" y="450" font-size="12" fill="#111">case drops straight down —</text>
+  <text x="248" y="465" font-size="12" fill="#111">no funnel; drops into your own</text>
+  <text x="248" y="480" font-size="12" fill="#111">catch area (sized separately)</text>
 
   <defs>
     <marker id="arrow" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
@@ -97,42 +95,46 @@
   </defs>
 
   <!-- ===================== INSET: TOP VIEW OF ARM SWEEP ===================== -->
-  <rect x="560" y="60" width="300" height="260" fill="#fafafa" stroke="#ccc" stroke-width="1"/>
+  <rect x="560" y="60" width="300" height="270" fill="#fafafa" stroke="#ccc" stroke-width="1"/>
   <text x="575" y="85" font-size="15" font-weight="bold" fill="#111">Top view — arm sweep</text>
 
   <!-- pivot -->
-  <circle cx="640" cy="230" r="5" fill="#111"/>
-  <text x="620" y="252" font-size="11" fill="#111" text-anchor="end">pivot</text>
+  <circle cx="660" cy="230" r="5" fill="#111"/>
+  <text x="640" y="252" font-size="11" fill="#111" text-anchor="end">pivot</text>
 
-  <!-- Hold position: arm pointing to coil bore -->
-  <line x1="640" y1="230" x2="640" y2="130" stroke="#111" stroke-width="4"/>
-  <circle cx="640" cy="120" r="16" fill="none" stroke="#c33" stroke-width="2"/>
-  <text x="640" y="100" font-size="11" fill="#c33" text-anchor="middle">coil bore</text>
-  <text x="700" y="150" font-size="11" fill="#111">HOLD — shelf under coil bore</text>
+  <!-- Coil OD circle drawn around the HOLD point -->
+  <circle cx="660" cy="150" r="34" fill="none" stroke="#c33" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <text x="660" y="108" font-size="11" fill="#c33" text-anchor="middle">coil OD</text>
 
-  <!-- Drop position: arm swung ~100 deg clear -->
-  <line x1="640" y1="230" x2="742" y2="270" stroke="#999" stroke-width="3" stroke-dasharray="6 4"/>
-  <circle cx="742" cy="270" r="16" fill="none" stroke="#999" stroke-width="2" stroke-dasharray="3 3"/>
-  <text x="700" y="300" font-size="11" fill="#555">DROP — shelf swung clear,</text>
-  <text x="700" y="313" font-size="11" fill="#555">case falls through bore</text>
+  <!-- Hold position -->
+  <line x1="660" y1="230" x2="660" y2="150" stroke="#111" stroke-width="4"/>
+  <circle cx="660" cy="150" r="10" fill="none" stroke="#111" stroke-width="2"/>
+  <text x="700" y="145" font-size="11" fill="#111">HOLD — case under coil bore</text>
 
-  <!-- sweep arc -->
-  <path d="M640,130 A100,100 0 0 1 742,270" fill="none" stroke="#999" stroke-width="1" stroke-dasharray="2 3"/>
-  <text x="705" y="200" font-size="11" fill="#777">~90-100° sweep</text>
+  <!-- Drop position: small angle, just past the coil OD circle -->
+  <line x1="660" y1="230" x2="722" y2="163" stroke="#999" stroke-width="3" stroke-dasharray="6 4"/>
+  <circle cx="722" cy="163" r="10" fill="none" stroke="#999" stroke-width="2" stroke-dasharray="3 3"/>
+  <text x="740" y="185" font-size="11" fill="#555">DROP — just past</text>
+  <text x="740" y="199" font-size="11" fill="#555">the coil's OD,</text>
+  <text x="740" y="213" font-size="11" fill="#555">case falls clear</text>
 
-  <text x="575" y="345" font-size="11" fill="#555">Servo swings the arm only between these two hard endpoints —</text>
-  <text x="575" y="360" font-size="11" fill="#555">it never needs a per-case-length command; the length/diameter</text>
-  <text x="575" y="375" font-size="11" fill="#555">compensation lives entirely in the shelf-height nut and the</text>
-  <text x="575" y="390" font-size="11" fill="#555">interchangeable insert cup, both set by hand before a run.</text>
+  <path d="M660,150 A80,80 0 0 1 722,163" fill="none" stroke="#999" stroke-width="1" stroke-dasharray="2 3"/>
+  <text x="700" y="230" font-size="11" fill="#777">sweep ≈ smallest angle that</text>
+  <text x="700" y="244" font-size="11" fill="#777">clears the coil body — a function</text>
+  <text x="700" y="258" font-size="11" fill="#777">of arm radius vs. coil OD, not a</text>
+  <text x="700" y="272" font-size="11" fill="#777">fixed 90°. See DESIGN.md formula.</text>
+
+  <text x="575" y="300" font-size="11" fill="#555">No mechanical hard-stop hardware — the RC servo itself</text>
+  <text x="575" y="314" font-size="11" fill="#555">is the repeatable element (2 fixed commanded positions).</text>
 
   <!-- Legend -->
-  <rect x="560" y="420" width="300" height="150" fill="#fafafa" stroke="#ccc" stroke-width="1"/>
-  <text x="575" y="445" font-size="15" font-weight="bold" fill="#111">Legend</text>
-  <circle cx="580" cy="465" r="5" fill="#c33" fill-opacity="0" stroke="#c33" stroke-width="2"/>
-  <text x="595" y="470" font-size="12" fill="#111">coil / heated zone (placeholder geometry)</text>
-  <line x1="570" y1="490" x2="590" y2="490" stroke="#111" stroke-width="3"/>
-  <text x="595" y="494" font-size="12" fill="#111">fixed / structural part</text>
-  <line x1="570" y1="510" x2="590" y2="510" stroke="#999" stroke-width="3" stroke-dasharray="6 4"/>
-  <text x="595" y="514" font-size="12" fill="#111">moving part, alternate position shown</text>
-  <text x="575" y="538" font-size="12" fill="#111">Full brief and rationale: docs/DESIGN.md</text>
+  <rect x="560" y="345" width="300" height="140" fill="#fafafa" stroke="#ccc" stroke-width="1"/>
+  <text x="575" y="370" font-size="15" font-weight="bold" fill="#111">Legend</text>
+  <circle cx="580" cy="390" r="5" fill="none" stroke="#c33" stroke-width="2"/>
+  <text x="595" y="394" font-size="12" fill="#111">coil / heated zone (placeholder geometry)</text>
+  <line x1="570" y1="414" x2="590" y2="414" stroke="#111" stroke-width="3"/>
+  <text x="595" y="418" font-size="12" fill="#111">fixed / structural part</text>
+  <line x1="570" y1="434" x2="590" y2="434" stroke="#999" stroke-width="3" stroke-dasharray="6 4"/>
+  <text x="595" y="438" font-size="12" fill="#111">moving part, alternate position shown</text>
+  <text x="575" y="462" font-size="12" fill="#111">Full brief and rationale: docs/DESIGN.md</text>
 </svg>

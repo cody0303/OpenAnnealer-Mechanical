@@ -8,28 +8,27 @@ four-family swappable-insert scheme in [`docs/DESIGN.md`](../docs/DESIGN.md); an
 
 | Part | Material | Qty | Notes |
 |---|---|---|---|
-| Base plate | PLA/PETG | 1 | Mounts magazine column, electronics enclosure |
-| Magazine outer tube | PLA/PETG | 1 | Structural, fixed |
-| Magazine liner | PETG/Nylon | 1 per family | Swappable, matches case body OD |
-| Singulator wheel | PETG/Nylon | 1 per family | Keyed to feeder motor shaft |
-| Drop chute | PETG/Nylon | 1 | Near coil zone |
+| Base plate | PLA/PETG | 1 | Mounts hopper/disk assembly, electronics enclosure |
+| Hopper (V-trough) | PLA/PETG | 1 | Structural, fixed, mounted at ~45° |
+| Singulator disk | PETG/Nylon | 1 per family | Single through-hole pocket, keyed to feeder motor shaft |
+| Face plate | PETG/Nylon | 1 | Stationary, behind disk, with discharge cutout |
+| Drop chute | PETG/Nylon | 1 | Disk discharge → holder |
 | Coil mount bracket | PETG/Nylon | 1 | Vertical slot for height adjustment |
 | Swing arm | PETG/Nylon | 1 | Carries adjustment stud |
 | Holder shelf | PETG/Nylon | 1 | Slides on adjustment stud |
 | Insert cup | PETG/Nylon | 1 per family | Press-fits onto shelf |
-| Funnel | PLA/PETG | 1 | Non-precision |
 | Motor adapter plate | PLA/PETG | 1 per motor once chosen | Absorbs NEMA bolt-pattern differences |
 
 ## Hardware (fasteners, off-the-shelf)
 
 | Item | Spec | Qty | Notes |
 |---|---|---|---|
-| Vertical pivot shaft | steel rod, diameter TBD by servo horn/bearing choice | 1 | |
+| Vertical pivot shaft (arm) | steel rod, diameter TBD by servo horn/bearing choice | 1 | |
+| Tilted disk shaft | steel rod/shaft coupler, matches feeder motor shaft | 1 | ~45° mount |
 | Adjustment stud + thumb nut | threaded rod (e.g. M6), knurled nut | 1 set | Case-length compensation |
 | Coil mount screw + slot hardware | M4 or M5 | 2 | Height-adjust clamp |
 | Case-holder servo | TowerPro SG90/MG90S or similar | 1 | Per firmware README |
 | Motor mounting screws | TBD once motor(s) chosen | — | Goes through adapter plate, not structural part |
-| Tray / quench cup | off-the-shelf metal cup or tray | 1 | |
 
 ## Explicitly not yet specified
 

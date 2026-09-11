@@ -14,7 +14,7 @@ affected subsystem needs rework before it's worth modeling in CAD:
 
 | # | Assumption | Why it matters | Confirmed? |
 |---|---|---|---|
-| 1 | Case range to support: pistol through magnum, roughly 0.75"–2.85" (19–72 mm) case length | Drives magazine, guide-tube, and holder-insert sizing | No — working range, not measured against real cases yet |
+| 1 | Case range to support: pistol through magnum, roughly 0.75"–2.85" (19–72 mm) case length | Drives hopper/disk and holder-insert sizing | No — working range, not measured against real cases yet |
 | 2 | Induction coil not yet purchased | Coil bore ID and winding height set the minimum clearance the holder column and cook-zone height must fit inside | No — mount is designed adjustable/oversized until a real coil is on hand |
 | 3 | Feeder motor and the second ("spare") motor's frame size (NEMA form factor) | Determines mounting bolt patterns | **Not locked** — see [Second (spare) motor mounting](#second-spare-motor-mounting) below; do not cut a fixed bolt pattern for either motor into a structural part |
 | 4 | Fabrication: FDM 3D printing for all custom parts | Drives wall thickness, tolerance, and material choices below | Confirmed by you |
@@ -27,16 +27,21 @@ getting one of these assumptions wrong later costs a reprinted insert, not a red
 
 One column, top to bottom (see diagram):
 
-1. **Magazine** — vertical tube, cases stacked base-down under gravity.
-2. **Singulator** — a stepper-driven escapement wheel with a single case-sized pocket releases
-   exactly one case per feed cycle into a short drop chute.
+1. **Hopper** — a wide V-trough, loosely filled with loose cases in bulk (no hand-orienting; they
+   settle roughly base-down against the trough walls).
+2. **Singulator disk** — a single-pocket disk, tilted ~45° at the hopper's throat and driven by the
+   feeder stepper, catches one case at a time (rim-first, into a through-hole) as it rotates under
+   the jumbled pile, rides on a stationary face plate until its pocket reaches a discharge cutout,
+   then drops the case down a short chute into the holder below.
 3. **Coil zone** — the case's neck/shoulder ("cook zone") sits inside the induction coil, supported
    from below by a shelf mounted on the swing arm.
-4. **Swing arm** — rotates about a vertical pivot, in the horizontal plane, between two hard
-   endpoints:
+4. **Swing arm** — rotates about a vertical pivot, in the horizontal plane, between two servo-
+   commanded positions:
    - **HOLD** — shelf positioned directly under the coil bore, case supported.
-   - **DROP** — shelf swung clear; case is no longer supported and falls straight down.
-5. **Funnel + tray** — catches the dropped case, non-precision, sized generously.
+   - **DROP** — shelf swung just far enough to clear the coil body; case is no longer supported and
+     falls straight down.
+5. **Drop point** — no funnel or catch tray in this design; the case falls straight down into
+   whatever catch area you provide below (sized separately, per your call).
 
 This matches the firmware's model exactly: the servo only ever commands two fixed ratios
 (`HOLDER_RATIO_HOLD` / `HOLDER_RATIO_DROP`, see
@@ -50,9 +55,20 @@ commands per case").
 
 ### Case holder (swing arm)
 
-- A single arm rotates on a vertical pivot shaft, driven by the case-holder servo, between the
-  HOLD and DROP hard endpoints (~90–100° sweep, exact angle set during bench tuning of the servo's
-  duty-cycle endpoints — see `close_duty_cycle`/`open_duty_cycle` in `servo_gate.c`).
+- A single arm rotates on a vertical pivot shaft, driven by the case-holder servo, between two
+  commanded positions (HOLD/DROP). **No mechanical hard-stop hardware is included** — the RC servo
+  is inherently position-controlled (it always drives to whichever duty cycle it's told), so the
+  servo itself is the repeatable element, exactly as `servo_gate.c` implements it
+  (`close_duty_cycle`/`open_duty_cycle`, two fixed values). A physical stop can be retrofitted later
+  if bench testing turns up slop under load, but nothing is designed in preemptively.
+- The sweep only needs to be large enough for the shelf/case to clear the coil body, not a fixed
+  90°+ arc. For an arm of radius `r` (pivot to case centerline) and a coil of outer radius `R`
+  (measured from the HOLD centerline, i.e. from the case's position), the chord the case travels at
+  swing angle `θ` is `2r·sin(θ/2)`; solving for the angle that just clears the coil plus a small
+  margin `m`: `θ_min = 2·asin((R + m) / (2r))`. E.g. at `r` = 50 mm and `R` = 25 mm coil radius with
+  a 5 mm margin, `θ_min ≈ 35°` — nowhere near 90°. Longer arms need even less angle for the same
+  coil. **Finalize this once a real coil OD and arm radius are chosen**; the diagram shows a small
+  sweep as the working assumption instead of the earlier 90–100° figure.
 - At the working end of the arm, a **vertical stud** carries a shelf/cup that slides up or down the
   stud and locks with a **thumb nut** — this is the "adjustment nut" from the brief. Raising or
   lowering the shelf changes how far a case sits down into the guide column, which is what lines
@@ -67,38 +83,44 @@ commands per case").
   press-fit shoulder into a shallow recess on the shelf, sized for a firm hand-press fit in PETG
   (no fasteners needed — it's a tool-less swap between range sessions).
 
-### Feed / singulation
+### Hopper + singulator disk
 
-- **Primary concept: escapement wheel.** A wheel with one case-sized pocket sits directly under
-  the magazine outlet, driven by the existing feeder stepper (`SELECT_FEEDER_MOTOR`). One pocket
-  rotation past the outlet lets exactly one case drop into the pocket and carries it to a drop
-  chute on the far side, where it falls into the holder below. This is deliberately tolerant of the
-  brief's open-loop, fixed-time/fixed-speed constraint: the firmware only needs to run the motor
-  long enough to guarantee at least one full pocket rotation (`feed_run_time_ms` /
-  `feed_speed_rps` in `profile.c`), and the wheel's geometry — not timing precision — is what
-  prevents more than one case from passing per cycle.
-- Because pocket geometry has to match case body diameter reasonably closely to avoid double-
-  feeding or jamming, the wheel is a **swappable part per case-family** (same four-family grouping
-  as the holder inserts), keyed onto the motor shaft (D-shaft or grub-screw, matching the feeder
-  motor's actual shaft).
-- **Fallback concept**, if the escapement proves unreliable once real cases are on the bench: a
-  horizontal pusher plate driven by the same stepper through a lead screw or rack, shoving the
-  lowest case out of a horizontal trough into the drop chute. Slower to iterate mechanically (more
-  linear travel to tune) but easier to make width-adjustable for a wide case range without swapping
-  parts. Worth keeping as Plan B rather than committing to it now, since it isn't clear yet which
-  approach real cases will prefer.
-- This subsystem is explicitly the least mature part of this design — the brief calls it "not yet
-  designed," and it's the one part here that most needs iteration against real cases rather than
-  drawings. Treat the escapement wheel dimensions as a first print to test, not a final part.
+This is modeled directly on a real reference (ARC Precision's ARC Ultimate annealer): a wide
+V-trough hopper feeds a rotating, tilted pocket disk that both singulates and reorients cases in
+one mechanism.
 
-### Magazine
-
-- Single vertical tube with a **swappable liner** (thin printed sleeve, four sizes matching the
-  same case-family groups) so the tube ID stays close to case body OD across the whole pistol-to-
-  magnum range — a magazine sized loosely for .338 Lapua would let a 9mm case tip sideways and jam.
-  The outer tube (structural, mounts to the frame) stays fixed; only the thin liner swaps.
-- Length: sized for a reasonable working stack (10–15 cases of the shortest case in a family) —
-  not a hard constraint, easy to extend later since it's a simple tube.
+- **Hopper**: a wide V-trough mounted at roughly 45° from vertical. Cases are dumped in as a loose
+  batch — no hand-orienting. Because a case's flat, relatively heavy base makes it the natural
+  "downhill" end, cases in the trough settle roughly base-down against the V on their own; the
+  trough doesn't need to precisely orient every case, just bias most of them the right way often
+  enough for the disk to pick up cleanly.
+- **Singulator disk**: a flat disk with a **single through-hole pocket**, mounted on a shaft tilted
+  with the hopper (~45°) and driven by the existing feeder stepper (`SELECT_FEEDER_MOTOR`). As it
+  rotates under the jumbled pile, a case that happens to be positioned base-first over the pocket
+  drops in, rim catching the hole's edge (the same principle as a shellholder — hole ID between
+  case body OD and rim/head OD). Cases that aren't captured just ride along the disk surface and
+  fall back into the hopper — no separate reject mechanism needed, this rejects itself.
+- **Stationary face plate**: sits directly behind the disk (same tilt), supporting a captured case
+  from below/behind as the disk carries it around — otherwise it would just fall straight through
+  the pocket immediately. The face plate has one **discharge cutout**; when the pocket's rotation
+  brings it over that cutout, the case is no longer supported and drops down the chute below into
+  the holder.
+- **Open-loop timing**: the firmware only needs to run the disk long enough to guarantee the pocket
+  passes both the hopper zone and the discharge cutout at least once
+  (`feed_run_time_ms`/`feed_speed_rps` in `profile.c`) — no feed-confirmation sensor needed, matching
+  the brief. One real caveat worth flagging: because pickup is a matter of chance (a case has to
+  happen to be sitting over the pocket when it passes under the pile), a single-pocket disk won't
+  guarantee a catch on every single rotation the way a fully-constrained mechanism would — expect
+  an occasional feed cycle that comes up empty, on top of the case-missing-the-holder risk the
+  brief already calls out as unaddressed by sensing.
+- **Case-family handling**: the disk is a **swappable part per case-family** (pocket ID/depth sized
+  to that family's head diameter), keyed onto the motor shaft (D-shaft or grub-screw, matching the
+  feeder motor's actual shaft) — same four-family grouping as the holder inserts below. ARC's real
+  unit uses one disk with multiple pocket sizes around its rim instead; that's a viable upgrade path
+  later, but a swappable single-pocket disk is a simpler first part to get right in FDM.
+- This subsystem is explicitly the least mature part of this design — the brief calls the feed
+  mechanism "not yet designed," and pickup reliability (hopper angle, disk tilt, pocket depth) is
+  exactly the kind of thing that needs bench iteration against real cases, not more drawing.
 
 ### Coil mount
 
@@ -112,12 +134,12 @@ commands per case").
   finalizing the guide-column OD; it's the one dimension in this document most likely to force a
   revision.
 
-### Tray / quench
+### Drop point
 
-- Non-precision. A funnel with a mouth of at least ~110 mm (comfortably larger than the longest
-  case in the range, to give margin against tumbling on the way down) feeding a tray or water-
-  quench cup. No adjustment mechanism needed — gravity plus a generous catch area covers the whole
-  case range without per-caliber parts.
+- No funnel or catch tray in this design — the case falls straight down from the DROP position.
+  Catch-area sizing/placement is on you; this repo only needs to keep the drop point's location
+  (position under the coil, height above your bench/tray) documented once the frame is built, so a
+  catch area can be sized against it.
 
 ### Second (spare) motor mounting
 
@@ -126,7 +148,7 @@ feed-path function, "no mechanical role assigned yet." Since you're not locked t
 for either the feeder or this spare position, **no structural part in this design commits to a
 fixed motor bolt pattern.** Concretely:
 
-- Reserve a flat, unobstructed mounting **envelope** near the magazine/singulator (roughly
+- Reserve a flat, unobstructed mounting **envelope** near the hopper/singulator (roughly
   50×50 mm clear area plus shaft clearance) rather than drilling a bolt circle now.
 - When a motor is actually chosen for this position (and, if it turns out to differ from what's
   currently on the feeder, for that one too), the mounting bolt pattern goes on a small
@@ -140,14 +162,14 @@ fixed motor bolt pattern.** Concretely:
 
 ### Frame / base
 
-- New enclosure, no chassis carryover. Vertical column (magazine → singulator → coil → holder →
-  funnel) mounted to a flat base plate; electronics enclosure (LCD/encoder module, control board)
-  mounts wherever is convenient on or beside the base — no mechanical constraint from that side
-  beyond enclosure volume, per the brief.
+- New enclosure, no chassis carryover. Hopper + singulator disk → coil → holder → open drop point,
+  mounted to a flat base plate; electronics enclosure (LCD/encoder module, control board) mounts
+  wherever is convenient on or beside the base — no mechanical constraint from that side beyond
+  enclosure volume, per the brief.
 
 ## Case-family reference groups (working assumption)
 
-Used to size the four swappable inserts/liners/wheels above. These are standard published SAAMI
+Used to size the swappable disks and holder inserts above. These are standard published SAAMI
 case dimensions, not measurements — **verify against your actual cases before cutting the first
 insert**, especially at the top end (this document assumes "magnum" tops out around .338 Lapua
 Magnum-class, not the largest belted or beltless magnums that exist):
@@ -180,16 +202,16 @@ any sane design.
 
 ## Materials and fabrication (FDM)
 
-- **Near the coil** (holder shelf, insert cups, guide-column liners, singulator wheel, coil
-  mount bracket): use **PETG or nylon**, not PLA/ABS. These parts sit closest to a part that gets
-  hot and radiates during dwell; PLA softens around 60°C and ABS around 100°C, both low enough to
-  be a real concern this close to an induction-heated case. PETG (~80°C HDT) is the practical
-  minimum; nylon is better if you see any softening in testing.
-- **Away from the coil** (base plate, magazine tube/frame, motor mounts, funnel, tray bracket):
-  PLA or PETG is fine — no thermal exposure to plan around.
-- Standard FDM tolerances (±0.2 mm) are fine everywhere except the insert-cup-to-shelf press fit
-  and the liner-to-magazine-tube fit — plan a test coupon for those two before printing full-size
-  parts, since press-fit tolerance is printer- and material-dependent.
+- **Near the coil** (holder shelf, insert cups, singulator disk, face plate, coil mount bracket,
+  drop chute): use **PETG or nylon**, not PLA/ABS. These parts sit closest to a part that gets hot
+  and radiates during dwell; PLA softens around 60°C and ABS around 100°C, both low enough to be a
+  real concern this close to an induction-heated case. PETG (~80°C HDT) is the practical minimum;
+  nylon is better if you see any softening in testing.
+- **Away from the coil** (base plate, hopper, motor mounts): PLA or PETG is fine — no thermal
+  exposure to plan around.
+- Standard FDM tolerances (±0.2 mm) are fine everywhere except the insert-cup-to-shelf press fit —
+  plan a test coupon for that before printing full-size parts, since press-fit tolerance is
+  printer- and material-dependent.
 
 ## Bill of materials (mechanical, first pass)
 
@@ -198,11 +220,15 @@ See [`assembly/BOM.md`](../assembly/BOM.md).
 ## Next steps requiring physical hardware (not deferrable to more writing)
 
 1. Get real case samples across the intended range (at minimum one from each family above) and
-   check them against the family boundaries in the table — this gates the insert/liner/wheel sizes.
-2. Purchase the induction coil and re-check the ≥25 mm clear-bore target against its actual bore
-   ID and winding height.
+   check them against the family boundaries in the table — this gates the disk-pocket and insert
+   sizes.
+2. Purchase the induction coil; re-check the ≥25 mm clear-bore target and recompute the arm's
+   minimum swing angle (formula above) against its actual OD.
 3. Decide the feeder motor (and, if different, the second motor) before modeling any motor mount
    as more than the generic envelope described above.
 4. Print a single-family prototype (recommend starting with the Large family — .308-class — since
-   it's the most common bench case) of the escapement wheel + holder shelf + insert cup, and bench
-   test the feed/hold/drop sequence before committing to CAD for the other three families.
+   it's the most common bench case) of the singulator disk + face plate + holder shelf + insert cup,
+   and bench test hopper pickup reliability and the feed/hold/drop sequence before committing to
+   CAD for the other three families. Pickup reliability (hopper angle, disk tilt, pocket depth) is
+   the part most likely to need several iterations — plan for that rather than expecting the first
+   print to work.
