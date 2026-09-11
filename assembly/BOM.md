@@ -19,7 +19,7 @@ four-family swappable-insert scheme in [`docs/DESIGN.md`](../docs/DESIGN.md); an
 | Swing arm | PETG/Nylon | 1 | Carries adjustment stud |
 | Holder shelf | PETG/Nylon | 1 | Slides on adjustment stud |
 | Insert cup | PETG/Nylon | 1 per family | Press-fits onto shelf |
-| Motor adapter plate | PLA/PETG | 1 per motor once chosen | Absorbs NEMA bolt-pattern differences |
+| Motor bracket | PLA/PETG | 1 per motor frame size | Carries the motor bolt pattern — `cad/feeder/motor_bracket.scad` |
 
 ## Hardware (fasteners, off-the-shelf)
 
@@ -30,9 +30,10 @@ four-family swappable-insert scheme in [`docs/DESIGN.md`](../docs/DESIGN.md); an
 | Quick-change magnets | 6×2mm neodymium disc | 3 per hub + 3 per disk | Press-fit into `drive_hub.scad`/`singulator_disk.scad` pockets — check polarity before gluing |
 | Adjustment stud + thumb nut | threaded rod (e.g. M6), knurled nut | 1 set | Case-length compensation |
 | Coil mount screw + slot hardware | M4 or M5 | 2 | Height-adjust clamp |
-| Back plate mounting screws | M3 | 3 | Into housing standoffs — `cad/feeder/back_plate.scad` |
+| Bracket-to-back-plate standoffs | M3 threaded standoff, 20mm | 3 | Ties motor and wheel to one axis |
+| Standoff screws | M3 | 6 | Three each end, through back plate and bracket |
 | Case-holder servo | TowerPro SG90/MG90S or similar | 1 | Per firmware README |
-| Motor mounting screws | TBD once motor(s) chosen | — | Goes through adapter plate, not structural part |
+| Motor mounting screws | M3 | 4 | Motor face to the bracket's rear face |
 
 ## Explicitly not yet specified
 

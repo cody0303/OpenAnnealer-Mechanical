@@ -11,7 +11,8 @@ Parametric, text-based CAD for the printed parts. [Install OpenSCAD](https://ope
   not in a part file**, and re-render everything that depends on it.
 - [`lib/shapes.scad`](lib/shapes.scad) — small reusable helpers (D-shaft profile, bolt-circle
   placement).
-- [`feeder/`](feeder) — the feed subsystem: hopper, singulator wheel, back plate, shroud, drive hub.
+- [`feeder/`](feeder) — the feed subsystem: hopper, singulator wheel, back plate, shroud, drive
+  hub, motor bracket.
   See [`docs/DESIGN.md`](../docs/DESIGN.md) "Hopper + singulator wheel" for how these fit together
   mechanically.
 
@@ -24,6 +25,7 @@ Parametric, text-based CAD for the printed parts. [Install OpenSCAD](https://ope
 | [`feeder/back_plate.scad`](feeder/back_plate.scad) | Stationary plate the case bases ride on, carries the discharge hole | PETG/nylon |
 | [`feeder/shroud.scad`](feeder/shroud.scad) | Arc wall holding cases in their scallops; where it ends is the release point | PETG/nylon |
 | [`feeder/hopper.scad`](feeder/hopper.scad) | Flat-backed pan, converging sides, non-precision | PLA/PETG |
+| [`feeder/motor_bracket.scad`](feeder/motor_bracket.scad) | Mounts the motor; the **only** part carrying a motor bolt pattern | PLA/PETG |
 | [`feeder/feeder_assembly.scad`](feeder/feeder_assembly.scad) | Combined preview of all five, tilted ~45° — **not** something you print or export as one piece; print each part from its own file | — |
 
 Not yet modeled: the holder swing arm, shelf, insert cup, coil mount bracket, and drop chute (the

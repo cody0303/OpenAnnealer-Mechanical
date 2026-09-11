@@ -174,6 +174,18 @@ feed-path function, "no mechanical role assigned yet." Since you're not locked t
 for either the feeder or this spare position, **no structural part in this design commits to a
 fixed motor bolt pattern.** Concretely:
 
+The feeder motor itself now *is* mounted — see [`cad/feeder/motor_bracket.scad`](../cad/feeder/motor_bracket.scad).
+That bracket is the concrete form of this policy: it is the only part in the design with a motor
+bolt pattern in it, so changing frame size means reprinting one small plate. It bolts the motor on
+its rear face and ties to the back plate through three standoffs, so motor, plate and wheel all
+reference a single axis — which is what keeps the shaft centred in the wheel and gives the motor's
+reaction torque a load path. Two details there are easy to get wrong and are now asserted rather
+than eyeballed: the shaft has to reach far enough into the hub bore (13.5 of 14 mm at the current
+stack), and the motor's bolt circle has to stay clear of the discharge path, since a dropped case
+falls *backwards* through the back plate and has to clear the bracket plane too.
+
+For the **second, still-unassigned** motor:
+
 - Reserve a flat, unobstructed mounting **envelope** near the hopper/singulator (roughly
   50×50 mm clear area plus shaft clearance) rather than drilling a bolt circle now.
 - When a motor is actually chosen for this position (and, if it turns out to differ from what's

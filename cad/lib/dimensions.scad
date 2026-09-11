@@ -166,6 +166,59 @@ MAGNET_ANGLE_OFFSET = 60;    // rotates the magnet circle relative to the pin ci
                               // they always line up
 
 // ---------------------------------------------------------------------------
+// Motor mount
+//
+// The bracket is the ONLY part in this design carrying a motor bolt pattern,
+// deliberately: the feeder motor isn't locked in, so changing frame size means
+// reprinting one small plate and nothing else. Values below are NEMA17.
+//
+// The bracket ties to the back plate through three standoffs on the back
+// plate's existing mount circle, so motor, plate and wheel all reference one
+// axis and the shaft can't wander out of the wheel's center.
+// ---------------------------------------------------------------------------
+MOTOR_BOLT_SQUARE  = 31;     // NEMA17 bolt spacing, center to center
+MOTOR_BOLT_D       = 3.4;    // M3 clearance
+MOTOR_BOSS_D       = 22;     // NEMA17 pilot boss on the motor's face
+MOTOR_BOSS_CLEAR_D = 23.5;
+MOTOR_SHAFT_LEN    = 24;     // shaft protrusion beyond the motor face -- MEASURE YOURS, 22 and 24 both common
+
+MOTOR_BRACKET_OD        = BACKPLATE_OD;
+MOTOR_BRACKET_THICKNESS = 5;
+MOTOR_STANDOFF_LEN      = 20;   // off-the-shelf M3 standoff length
+MOTOR_STANDOFF_OD       = 8;
+MOUNT_HOLE_CHECK_D      = 3.4;   // the M3 clearance used on both plates, mirrored here for the assertions
+
+// A stepper doesn't care how it's clocked, so the bolt pattern is rotated to put its corners as
+// far as possible from the discharge path. The square's corners sit at offset+45+90k, so this
+// offset lands them at DISCHARGE_ANGLE +/- 45 -- the furthest a 4-hole pattern can get from one
+// direction. Getting this wrong is easy and silent (an earlier +45 put a bolt exactly ON the
+// discharge axis), hence the assertion at the bottom of this file.
+MOTOR_BOLT_ANGLE_OFFSET = DISCHARGE_ANGLE - 90;
+
+// A dropped case falls backwards through the back plate's discharge hole, so it has to clear the
+// bracket plane too -- otherwise the bracket is a floor the case lands on.
+MOTOR_DISCHARGE_CLEAR_D = 16;
+
+// Axial stack, working back from the wheel. The motor's face lands behind the back plate by the
+// standoffs plus the bracket, and the shaft then has to reach forward far enough to fill the hub.
+MOTOR_FACE_Z        = -(BACKPLATE_THICKNESS + MOTOR_STANDOFF_LEN + MOTOR_BRACKET_THICKNESS);
+HUB_BACK_Z          = -(BACKPLATE_THICKNESS + BACKPLATE_CLEARANCE_GAP) - HUB_LENGTH;
+SHAFT_TIP_Z         = MOTOR_FACE_Z + MOTOR_SHAFT_LEN;
+SHAFT_IN_HUB        = SHAFT_TIP_Z - HUB_BACK_Z;   // how much of the hub's bore the shaft actually fills
+
+// Where things land in the bracket's plane, used by the clearance assertions below
+MOTOR_BOLT_ORBIT_R = MOTOR_BOLT_SQUARE * sqrt(2) / 2;
+DISCHARGE_X        = POCKET_ORBIT_R * cos(DISCHARGE_ANGLE);
+DISCHARGE_Y        = POCKET_ORBIT_R * sin(DISCHARGE_ANGLE);
+MOTOR_BOLT_GAP     = min([ for (k = [0:3])
+                           let (a = MOTOR_BOLT_ANGLE_OFFSET + 45 + 90*k)
+                           norm([MOTOR_BOLT_ORBIT_R*cos(a) - DISCHARGE_X,
+                                 MOTOR_BOLT_ORBIT_R*sin(a) - DISCHARGE_Y]) ]);
+MOTOR_STANDOFF_GAP = min([ for (k = [0:2])
+                           let (a = DISCHARGE_ANGLE + 70 + 120*k, r = BACKPLATE_OD/2 - 4)
+                           norm([r*cos(a) - DISCHARGE_X, r*sin(a) - DISCHARGE_Y]) ]);
+
+// ---------------------------------------------------------------------------
 // Sanity checks -- these catch a future dimension edit that would silently
 // break the fit (e.g. shrinking the back plate's clearance hole until it
 // clips the magnets, or growing the pocket orbit until it exits the disk).
@@ -190,3 +243,15 @@ assert(HOPPER_CHORD < HOPPER_WIDTH - 4*HOPPER_WALL_T,
     "hopper must be wider than the wheel's exposure chord, with wall left either side");
 assert(HOPPER_CAPACITY >= 50,
     "hopper must hold at least 50 cases -- grow HOPPER_WIDTH/HOPPER_HEIGHT (estimate, verify with real brass)");
+
+// Motor mount clearances -- all three of these are things that look fine in the numbers and only
+// show up as a jam or a dead-end on the bench.
+assert(SHAFT_IN_HUB >= 10,
+    "motor shaft must reach far enough into the hub bore -- adjust MOTOR_STANDOFF_LEN or check MOTOR_SHAFT_LEN");
+assert(SHAFT_IN_HUB <= HUB_LENGTH,
+    "motor shaft would bottom out past the hub -- it would push the wheel off the hub face");
+assert(MOTOR_BOLT_GAP > MOTOR_BOLT_D/2 + MOTOR_DISCHARGE_CLEAR_D/2 + 1.5,
+    "a motor bolt hole is too close to the discharge opening -- re-clock MOTOR_BOLT_ANGLE_OFFSET");
+assert(MOTOR_STANDOFF_GAP > MOUNT_HOLE_CHECK_D/2 + MOTOR_DISCHARGE_CLEAR_D/2 + 1.5,
+    "a standoff is too close to the discharge opening -- move the back plate mount circle");
+

@@ -31,7 +31,10 @@
 // orientation. The chute and coil below aren't modeled yet.
 
 include <../lib/dimensions.scad>
+include <../lib/shapes.scad>
 use <../lib/case_model.scad>
+use <../lib/motor_model.scad>
+use <motor_bracket.scad>
 use <drive_hub.scad>
 use <singulator_disk.scad>
 use <back_plate.scad>
@@ -43,6 +46,7 @@ GAP = BACKPLATE_CLEARANCE_GAP;
 ASSEMBLY_TILT_DEG = 45;
 
 SHOW_CASES = true;   // set false for a clean view of the printed parts alone
+SHOW_MOTOR = true;   // motor, bracket and standoffs
 
 // Cases resting on the wheel's crown and stacked up the hopper, all lying
 // parallel to the wheel's axis. Positions are eyeballed for the preview.
@@ -60,6 +64,27 @@ module feeder_assembly() {
         color("SlateGray")
             translate([0, 0, -BACKPLATE_THICKNESS - GAP])
                 drive_hub();
+
+        if (SHOW_MOTOR) {
+            // Bracket: motor bolts to its rear face, standoffs tie its front
+            // face to the back plate. Mirrored on placement for the same
+            // reason the back plate is -- its local Z runs front to back.
+            color("LightSteelBlue")
+                translate([0, 0, -(BACKPLATE_THICKNESS + MOTOR_STANDOFF_LEN)])
+                    mirror([0, 0, 1])
+                        motor_bracket();
+
+            // Standoffs holding the two plates apart
+            color("Silver")
+                orbit(BACKPLATE_OD/2 - 4, 3, DISCHARGE_ANGLE + 70)
+                    translate([0, 0, -(BACKPLATE_THICKNESS + MOTOR_STANDOFF_LEN)])
+                        cylinder(d = MOTOR_STANDOFF_OD, h = MOTOR_STANDOFF_LEN);
+
+            color("DarkSlateGray", 0.85)
+                translate([0, 0, MOTOR_FACE_Z])
+                    rotate([0, 0, MOTOR_BOLT_ANGLE_OFFSET])
+                        nema_motor(shaft_len = MOTOR_SHAFT_LEN);
+        }
 
         color("DimGray")
             mirror([0, 0, 1])
