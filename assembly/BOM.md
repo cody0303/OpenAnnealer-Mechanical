@@ -1,0 +1,39 @@
+# Bill of Materials — first pass
+
+Status: concept-stage estimate to size the design, not a purchasing list. Quantities assume the
+four-family swappable-insert scheme in [`docs/DESIGN.md`](../docs/DESIGN.md); anything marked
+"per family" needs one unit per case-family you actually intend to run.
+
+## Printed parts (FDM)
+
+| Part | Material | Qty | Notes |
+|---|---|---|---|
+| Base plate | PLA/PETG | 1 | Mounts magazine column, electronics enclosure |
+| Magazine outer tube | PLA/PETG | 1 | Structural, fixed |
+| Magazine liner | PETG/Nylon | 1 per family | Swappable, matches case body OD |
+| Singulator wheel | PETG/Nylon | 1 per family | Keyed to feeder motor shaft |
+| Drop chute | PETG/Nylon | 1 | Near coil zone |
+| Coil mount bracket | PETG/Nylon | 1 | Vertical slot for height adjustment |
+| Swing arm | PETG/Nylon | 1 | Carries adjustment stud |
+| Holder shelf | PETG/Nylon | 1 | Slides on adjustment stud |
+| Insert cup | PETG/Nylon | 1 per family | Press-fits onto shelf |
+| Funnel | PLA/PETG | 1 | Non-precision |
+| Motor adapter plate | PLA/PETG | 1 per motor once chosen | Absorbs NEMA bolt-pattern differences |
+
+## Hardware (fasteners, off-the-shelf)
+
+| Item | Spec | Qty | Notes |
+|---|---|---|---|
+| Vertical pivot shaft | steel rod, diameter TBD by servo horn/bearing choice | 1 | |
+| Adjustment stud + thumb nut | threaded rod (e.g. M6), knurled nut | 1 set | Case-length compensation |
+| Coil mount screw + slot hardware | M4 or M5 | 2 | Height-adjust clamp |
+| Case-holder servo | TowerPro SG90/MG90S or similar | 1 | Per firmware README |
+| Motor mounting screws | TBD once motor(s) chosen | — | Goes through adapter plate, not structural part |
+| Tray / quench cup | off-the-shelf metal cup or tray | 1 | |
+
+## Explicitly not yet specified
+
+- Induction coil module (external purchase, out of scope for this repo beyond the mount interface)
+- Feeder motor and second/spare motor exact models — see `docs/DESIGN.md` § Second (spare) motor
+  mounting; do not lock a bolt pattern to either until chosen
+- Bearing (if any) for the pivot shaft vs. plain bushing — deferred to bench testing of arm friction
