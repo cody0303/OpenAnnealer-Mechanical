@@ -90,17 +90,28 @@ V-trough hopper feeds a rotating, tilted pocket disk that both singulates and re
 one mechanism. **CAD**: [`cad/feeder/`](../cad/feeder) (OpenSCAD, sized for a .223 Rem/5.56 NATO
 first prototype) — see [`cad/README.md`](../cad/README.md) before printing.
 
-- **Hopper**: a wide V-trough mounted at roughly 45° from vertical. Cases are dumped in as a loose
-  batch — no hand-orienting. Because a case's flat, relatively heavy base makes it the natural
-  "downhill" end, cases in the trough settle roughly base-down against the V on their own; the
-  trough doesn't need to precisely orient every case, just bias most of them the right way often
-  enough for the disk to pick up cleanly.
+- **Hopper**: an open, flared scoop leaning at roughly 45°, with the singulator disk forming its
+  floor. **There is no separate hopper bottom — the disk face itself is what the cases stand on.**
+  Cases are dumped in loose (no hand-orienting) and stand packed together on their bases directly
+  against the spinning disk, all roughly parallel, their axes perpendicular to the disk face. The
+  45° lean does two jobs at once: it presses the case bases flat against the disk face (so a base
+  can drop straight into a pocket as it passes), and it shuffles the pile down-slope so cases keep
+  feeding toward the pickup zone. The scoop is open on the up-slope side for loading and visibility
+  — gravity holds the pile down-slope, so an open uphill face costs nothing. That opening is what
+  gives the reference unit its "batwing" silhouette: two pointed wings either side of the scoop,
+  with a full-height retaining wall down-slope where the pile actually sits.
 - **Singulator disk**: a flat disk with a **single through-hole pocket**, mounted on a shaft tilted
-  with the hopper (~45°) and driven by the existing feeder stepper (`SELECT_FEEDER_MOTOR`). As it
-  rotates under the jumbled pile, a case that happens to be positioned base-first over the pocket
-  drops in, rim catching the hole's edge (the same principle as a shellholder — hole ID between
-  case body OD and rim/head OD). Cases that aren't captured just ride along the disk surface and
-  fall back into the hopper — no separate reject mechanism needed, this rejects itself.
+  with the hopper (~45°) and driven by the existing feeder stepper (`SELECT_FEEDER_MOTOR`). Because
+  the cases stand base-down on this disk's face, a case whose base happens to be over the pocket as
+  it passes drops straight in — entry is axial, along the pocket's own axis, which is why the cases
+  standing *perpendicular to the tilted face* (rather than vertically) is the detail that makes the
+  whole thing work. Cases not over the pocket simply stay standing on the disk face and get shuffled
+  along — no separate reject mechanism needed, this rejects itself.
+- **Pocket depth** is the disk's thickness, and it's load-bearing in a way that isn't obvious: the
+  pocket has to hold a case upright against its own tipping moment while the disk carries it to the
+  discharge. A 44.7mm .223 case in a 5mm-deep socket at 45° would likely flop; the current disk is
+  10mm for that reason. Expect to tune this on the bench — it's the first number to change if cases
+  tip or hang up.
 - **Stationary face plate**: sits directly behind the disk (same tilt), supporting a captured case
   from below/behind as the disk carries it around — otherwise it would just fall straight through
   the pocket immediately. The face plate has one **discharge cutout**; when the pocket's rotation

@@ -34,7 +34,13 @@ CLEARANCE_PRESS = -0.10; // negative = interference, for press-fit magnet pocket
 // Singulator disk
 // ---------------------------------------------------------------------------
 DISK_OD        = 72;
-DISK_THICKNESS = 5;
+DISK_THICKNESS = 10;  // doubles as the pocket's socket depth. A case rides the disk standing on its base,
+                       // perpendicular to a face that's tilted ~45 degrees, so the pocket has to be deep
+                       // enough to hold it upright against its own tipping moment on the way to the
+                       // discharge -- 5mm was almost certainly too shallow for a 44.7mm .223 case.
+                       // Prime bench-test variable: if cases tip or hang up, this is the first number to
+                       // change. (The reference ARC unit appears to stack rings behind its disk, which
+                       // would be one way to tune this per case length without reprinting the disk.)
 
 POCKET_ORBIT_R = 27;                                // radius from the rotation axis to the pocket hole's center
 POCKET_HOLE_D  = CASE_RIM_D + 2*CLEARANCE_LOOSE;     // clears the case rim -- this hole does NOT catch the case;
