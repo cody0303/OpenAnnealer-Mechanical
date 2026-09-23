@@ -19,10 +19,17 @@ jobs:
       - name: Render STL from SCAD files
         run: |
           mkdir -p build
+          fail=0
           find cad -name "*.scad" -print0 | while IFS= read -r -d '' f; do
+            echo "::group::Rendering $f"
             out="build/$(basename "${f%.scad}").stl"
-            openscad-nightly --enable=import-function -o "$out" "$f"
+            if ! openscad-nightly --enable=import-function -o "$out" "$f"; then
+              echo "FAILED: $f"
+              fail=1
+            fi
+            echo "::endgroup::"
           done
+          exit $fail
 
       - name: Create release with STL files
         uses: softprops/action-gh-release@v2
