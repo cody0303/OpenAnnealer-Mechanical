@@ -1,39 +1,37 @@
 # Bill of Materials — first pass
 
-Status: concept-stage estimate to size the design, not a purchasing list. Quantities assume the
-four-family swappable-insert scheme in [`docs/DESIGN.md`](../docs/DESIGN.md); anything marked
-"per family" needs one unit per case-family you actually intend to run.
+Status: work in progress. The feeder parts are modelled; everything below the feeder is design
+only. Nothing has been bench-tested.
 
 ## Printed parts (FDM)
 
 | Part | Material | Qty | Notes |
 |---|---|---|---|
-| Base plate | PLA/PETG | 1 | Mounts feeder assembly, electronics enclosure |
-| Hopper (pan) | PLA/PETG | 1 | Flat-backed, converging sides, leans ~45° — `cad/feeder/hopper.scad` |
-| Drive hub | PETG/Nylon | 1 | Fixed to feeder motor shaft — `cad/feeder/drive_hub.scad` |
-| Singulator wheel | PETG/Nylon | 1 per family | Scalloped rim; quick-change onto drive hub — `cad/feeder/singulator_disk.scad` |
-| Back plate | PETG/Nylon | 1 | Case bases ride on it; carries the discharge hole — `cad/feeder/back_plate.scad` |
-| Shroud | PETG/Nylon | 1 | Retains cases in their scallops to the release point — `cad/feeder/shroud.scad` |
-| Drop chute | PETG/Nylon | 1 | Disk discharge → holder |
+| Hopper (pan) | PLA/PETG | 1 | Flat-backed pan; boss doubles as wheel retaining wall, base plate and motor mount — `cad/feeder/hopper.scad` |
+| Singulator wheel | PETG/Nylon | 1 per case size | Rim pocket, size embossed on the face — `cad/feeder/singulator1.scad` |
+| Shaft adapter | PETG/Nylon | 1 | D-bore hub, couples wheel to motor shaft — `cad/feeder/shaftAdapter.scad` |
+
+Not yet modelled (design only, see `docs/DESIGN.md`):
+
+| Part | Material | Qty | Notes |
+|---|---|---|---|
+| Drop chute | PETG/Nylon | 1 | Wheel discharge → holder |
 | Coil mount bracket | PETG/Nylon | 1 | Vertical slot for height adjustment |
 | Swing arm | PETG/Nylon | 1 | Carries adjustment stud |
 | Holder shelf | PETG/Nylon | 1 | Slides on adjustment stud |
 | Insert cup | PETG/Nylon | 1 per family | Press-fits onto shelf |
-| Motor bracket | PLA/PETG | 1 per motor frame size | Carries the motor bolt pattern — `cad/feeder/motor_bracket.scad` |
 
 ## Hardware (fasteners, off-the-shelf)
 
 | Item | Spec | Qty | Notes |
 |---|---|---|---|
 | Vertical pivot shaft (arm) | steel rod, diameter TBD by servo horn/bearing choice | 1 | |
-| Hub set screw | M3 grub screw | 1 | Set once against motor shaft flat; never touched again per caliber swap |
-| Quick-change magnets | 6×2mm neodymium disc | 3 per hub + 3 per disk | Press-fit into `drive_hub.scad`/`singulator_disk.scad` pockets — check polarity before gluing |
+| Hub set screw | M3 grub screw + heat-set insert | 1 | Bears on the shaft's D-flat — `cad/feeder/shaftAdapter.scad` |
+| Drive pins | M3×20 socket head | 2 | Thread into the adapter, protrude ~11mm into the wheel. M3×16 only reaches ~7mm |
 | Adjustment stud + thumb nut | threaded rod (e.g. M6), knurled nut | 1 set | Case-length compensation |
 | Coil mount screw + slot hardware | M4 or M5 | 2 | Height-adjust clamp |
-| Bracket-to-back-plate standoffs | M3 threaded standoff, 20mm | 3 | Ties motor and wheel to one axis |
-| Standoff screws | M3 | 6 | Three each end, through back plate and bracket |
 | Case-holder servo | TowerPro SG90/MG90S or similar | 1 | Per firmware README |
-| Motor mounting screws | M3 | 4 | Motor face to the bracket's rear face |
+| Motor mounting screws | M3 socket head | 4 | Counterbored into the top of the hopper's base plate |
 
 ## Explicitly not yet specified
 

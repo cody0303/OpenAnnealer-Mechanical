@@ -20,9 +20,11 @@ motor) pending real hardware.
 
 ## Status
 
-Nothing has been printed or bench-tested yet. The design writeup and concept diagram are in
-[`docs/DESIGN.md`](docs/DESIGN.md) / [`docs/concept_diagram.svg`](docs/concept_diagram.svg). CAD
-work has started on the feed subsystem — hopper, singulator disk, face plate, and drive hub, sized
-for a .223 Rem / 5.56 NATO prototype — in [`cad/feeder/`](cad/feeder); see
-[`cad/README.md`](cad/README.md) for how to open and print them. The holder arm, coil mount, and
-everything downstream of the feeder isn't modeled yet.
+Nothing has been printed or bench-tested yet. The design writeup is in
+[`docs/DESIGN.md`](docs/DESIGN.md). CAD exists for the feed subsystem — hopper, singulator wheel
+and shaft adapter, sized for .223 Rem / 5.56 NATO — in [`cad/feeder/`](cad/feeder); see
+[`cad/README.md`](cad/README.md), which also covers the OpenSCAD nightly requirement. The holder
+arm, coil mount and everything downstream of the feeder isn't modelled yet.
+
+[`docs/concept_diagram.svg`](docs/concept_diagram.svg) predates the current feeder design and is
+kept only as a sketch of the overall machine.
