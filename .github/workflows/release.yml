@@ -8,21 +8,20 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repo (with submodules)
+        uses: actions/checkout@v4
         with:
           submodules: true
 
-      - name: Install OpenSCAD
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y openscad
+      - name: Install OpenSCAD nightly
+        run: sudo snap install openscad-nightly
 
       - name: Render STL from SCAD files
         run: |
           mkdir -p build
           find . -name "*.scad" -print0 | while IFS= read -r -d '' f; do
             out="build/$(basename "${f%.scad}").stl"
-            openscad -o "$out" "$f"
+            openscad-nightly --enable=import-function -o "$out" "$f"
           done
 
       - name: Create release with STL files
