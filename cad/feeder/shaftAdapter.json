@@ -2,7 +2,7 @@
     "fileFormatVersion": "1",
     "parameterSets": {
         "New set 1": {
-            "shaftSquareBool": "false"
+            "shaftSquareBool": "true"
         }
     }
 }

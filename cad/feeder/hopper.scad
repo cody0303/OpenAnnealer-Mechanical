@@ -64,12 +64,14 @@ difference(){
         for(x=[0:1]){
             for(y=[0:1]){
                 translate([x*motorHolePatternX, y*motorHolePatternY, 0])
-                    bolt("M3", baseThickness, kind = "socket_head", countersink = 1);
+                    bolt("M3", baseThickness, kind = "socket_head", countersink = 1.33);
             }
         }
     
     //drop hole
-    dropHoleSize=20;
-    translate([motorCenterX, motorCenterY-(singulatorDiameter/2)+dropHoleSize/3,-.01])
-        cylinder(h=baseThickness+.02, d=dropHoleSize);
+    dropHoleSize=30;
+    translate([motorCenterX, motorCenterY-(singulatorDiameter/2),0])
+        rotate([-30,0,0])
+            translate([0,0,-20])
+                cylinder(h=60, d=dropHoleSize);
 }

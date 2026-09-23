@@ -17,13 +17,13 @@ motorClearanceCircle=23;
 //hopper
 wallThickness = 8;
 baseThickness = 8;
-hopperWidth = 150;
-hopperHeight = 150;
+hopperWidth = 100;
+hopperHeight = 100;
 hopperDepth = 60;
 feedAngle = 30;
 
 //singulator
-singulatorDiameter = 100;
+singulatorDiameter = 80;
 singulatorExposureAngle = 90;
-numHoles=1;
+numHoles=2;
 caseCutout= 10;
