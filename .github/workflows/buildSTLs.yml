@@ -1,0 +1,29 @@
+name: Build and Release STL
+
+on:
+  push:
+    tags: ['v*.*.*']
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install OpenSCAD
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y openscad
+
+      - name: Render STL from SCAD files
+        run: |
+          mkdir -p build
+          find . -name "*.scad" -print0 | while IFS= read -r -d '' f; do
+            out="build/$(basename "${f%.scad}").stl"
+            openscad -o "$out" "$f"
+          done
+
+      - name: Create release with STL files
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build/*.stl
