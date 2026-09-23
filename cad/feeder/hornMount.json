@@ -1,0 +1,24 @@
+{
+    "fileFormatVersion": "1",
+    "parameterSets": {
+        "New set 1": {
+            "$fn": "96",
+            "armCount": "2",
+            "armLen": "9.5",
+            "armW": "5",
+            "driverBoreD": "4",
+            "holeCount": "3",
+            "holeD": "1.3",
+            "holePitch": "2.5",
+            "holeR": "4.5",
+            "hornThk": "1.5",
+            "hubD": "7",
+            "hubH": "2.6000000000000001",
+            "leverLen": "40",
+            "plateH": "6",
+            "pocketClear": "0.25",
+            "screwPilotD": "1.5",
+            "screwSize": "5"
+        }
+    }
+}
