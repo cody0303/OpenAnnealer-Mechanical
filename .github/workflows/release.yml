@@ -19,7 +19,7 @@ jobs:
       - name: Render STL from SCAD files
         run: |
           mkdir -p build
-          find . -name "*.scad" -print0 | while IFS= read -r -d '' f; do
+          find cad -name "*.scad" -print0 | while IFS= read -r -d '' f; do
             out="build/$(basename "${f%.scad}").stl"
             openscad-nightly --enable=import-function -o "$out" "$f"
           done
