@@ -58,7 +58,7 @@ caseNeck     = 38;
 cabinetWallThk  = 3;
 cabinetLeft     = 170;  // panel extent past the drop axis, feeder side (-X)
 cabinetRight    = 110;  // ...and the other side (+X)
-cabinetAbove    = 170;  // panel top, above the discharge exit
+cabinetAbove    = 10;   // panel top, above the funnel rim
 cabinetBelow    = 50;   // panel bottom, below the horn arm
 armSlotW        = 44;   // slot the horn arm swings through
 armSlotClear    = 2;    // above and below the arm, in that slot
@@ -187,7 +187,7 @@ module mock_cabinet_wall() {
     bot = armBotZ - cabinetBelow;
     difference() {
         translate([-cabinetLeft, clDist, bot])
-            cube([cabinetLeft + cabinetRight, cabinetWallThk, cabinetAbove - bot]);
+            cube([cabinetLeft + cabinetRight, cabinetWallThk, funnelRimZ + cabinetAbove - bot]);
 
         // slot the horn arm swings through
         translate([-armSlotW/2, clDist - 1, armBotZ - armSlotClear])
