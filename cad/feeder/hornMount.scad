@@ -24,6 +24,8 @@
 //
 // armCount: 1 = single, 2 = straight/double, 4 = cross/star.
 
+include <sharedDims.scad>
+
 /* [Stock horn -- MEASURE YOURS] */
 armCount  = 2;
 hornThk   = 1.5;
@@ -42,9 +44,7 @@ screwPilotD = 1.5;   // pilot for a self-tapper pulling the print onto the horn
 driverBoreD = 4.0;   // lets a driver reach the servo's central retaining screw
 
 /* [Your part] */
-leverLen   = 40;
-plateH   = 6;        // must exceed hornThk + a bit of roof over the pocket
-screwSize = 5;
+//plateH   = 6;        // must exceed hornThk + a bit of roof over the pocket
 
 $fn = 96;
 
@@ -68,28 +68,28 @@ difference(){
     //make the overall shape
     union(){
         //end where the screw goes
-        translate([leverLen, 0, 0])
-            cylinder(h=plateH, d=screwSize+4);
+        translate([clDist+servoBackset, 0, 0])
+            cylinder(h=supportThickness, d=supportScrewSize+4);
         //block for the horn interface
         translate([-(armLen+holeR), -(hubD+4)/2, 0])
-            cube([(armLen+holeR)*2, hubD+4, plateH]);
+            cube([(armLen+holeR)*2, hubD+4, supportThickness]);
         //nice tapered shape between them
-        linear_extrude(height=plateH)
-            polygon([[(armLen+holeR),(hubD+4)/2],[leverLen,(screwSize+4)/2],[leverLen,-(screwSize+4)/2],[(armLen+holeR),-(hubD+4)/2]]);
+        linear_extrude(height=supportThickness)
+            polygon([[(armLen+holeR),(hubD+4)/2],[clDist+servoBackset,(supportScrewSize+4)/2],[clDist+servoBackset,-(supportScrewSize+4)/2],[(armLen+holeR),-(hubD+4)/2]]);
     }
     //horn pocket
     horn_negative(pocketClear);
     //screw hole
-    translate([leverLen, 0, -1])
-        cylinder(h=plateH+2, d=screwSize+0.2);
+    translate([clDist+servoBackset, 0, -1])
+        cylinder(h=supportThickness+2, d=supportScrewSize+0.2);
     //clearance for horn screw access
     translate([0, 0, -0.01])
-        cylinder(d = driverBoreD, h = plateH + 0.02);
+        cylinder(d = driverBoreD, h = supportThickness + 0.02);
     //horn mating screws
     for (i = [0 : armCount - 1])
             rotate([0, 0, i * 360 / (armCount == 1 ? 1 : armCount)])
                 for (j = [0 : holeCount - 1])
                     translate([holeR + j * holePitch, 0, hornThk - 0.01])
-                        cylinder(d = screwPilotD, h = plateH);
+                        cylinder(d = screwPilotD, h = supportThickness);
 }
 

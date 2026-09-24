@@ -14,11 +14,8 @@
             "hornThk": "1.5",
             "hubD": "7",
             "hubH": "2.6000000000000001",
-            "leverLen": "40",
-            "plateH": "6",
             "pocketClear": "0.25",
-            "screwPilotD": "1.5",
-            "screwSize": "5"
+            "screwPilotD": "1.5"
         }
     }
 }

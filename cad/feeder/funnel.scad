@@ -12,14 +12,14 @@ difference(){
         rotate_extrude(angle = 360)
             polygon([p0, p1, p2o, p3o]);
         translate([-(exitDia/2),0,0])
-            cube([exitDia,mountDist,funnelHeight]);
+            cube([exitDia,clDist,funnelHeight]);
     }
     p3i=[exitDia/2,0];
     p2i=[topDia/2,funnelHeight];
     rotate_extrude(angle = 360)
         polygon([p0, p1, p2i, p3i]);
     for (i = [1 : funnelMountHoleCount])
-        translate([0,mountDist,(1/(funnelMountHoleCount+1))*funnelHeight*i])
+        translate([0,clDist,(1/(funnelMountHoleCount+1))*funnelHeight*i])
             rotate([90,0,0])
                 cylinder(h=4, d=4);
 }

@@ -25,12 +25,17 @@ feedAngle = 30;
 //singulator
 singulatorDiameter = 80;
 singulatorExposureAngle = 90;
-numHoles=2;
+numHoles=4;
 caseCutout= 10;
 
 //funnel
 topDia=40;
 exitDia=20;
 funnelHeight=30;
-mountDist=70;
+clDist=70;
 funnelMountHoleCount=2;
+
+//movable support
+servoBackset=10; //distance from the outside wall of the box to the center of rotation of the servo, assumes the servo is inside the box
+supportScrewSize = 5;
+supportThickness = 6;
