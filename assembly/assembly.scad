@@ -11,15 +11,19 @@
 // Only things with no source file are modelled locally: the motor, the
 // induction coil, the thumbscrew and the cases. Those are rough stand-ins for
 // visualisation, not parts to print.
+//
+// World frame: the Z axis IS the drop axis. The funnel, coil, case and
+// thumbscrew all sit on it at x = y = 0, and z = 0 is where the drop bore's
+// centreline crosses the hopper's base plane. The funnel arm points +Y,
+// toward the cabinet wall.
 
 include <../cad/feeder/sharedDims.scad>
 
-/* [Angles] */
-// The drop bore is rotated -BORE_ANGLE in hopper.scad, so the discharge leaves
-// at (FEEDER_TILT - BORE_ANGLE) off vertical. Equal values = dead vertical.
-FEEDER_TILT = 45;   // how far the feeder leans back
-FEEDER_SPIN = 90;   // feeder rotation about its own discharge, vs the funnel arm
-BORE_ANGLE  = 45;   // MUST match the rotate() on hopper.scad's drop hole
+/* [Feeder] */
+/* The feeder leans back by mountAngle and the drop bore is cut at mountAngle
+   (both from sharedDims), so the discharge always falls dead vertical.
+*/
+FEEDER_SPIN = 90;   // feeder rotation about the drop axis, vs the funnel arm
 
 /* [Vertical spacings] */
 dropToFunnelRim = 18;   // discharge exit down to the funnel's top rim
@@ -53,57 +57,41 @@ showCoil    = true;
 showFunnel  = true;
 showArm     = true;
 hopperAlpha = 0.35;   // 1 = solid; lower to see the wheel and motor through it
+funnelAlpha = 1;
 
 // ---------------------------------------------------------------------------
 // Values duplicated from hopper.scad
 //
-// These are derived inside hopper.scad rather than living in sharedDims.scad,
-// so this file has to mirror them. If you ever hoist them into sharedDims,
-// delete this block and the duplication goes away.
+// These live inside hopper.scad rather than sharedDims.scad, so this file has
+// to mirror them (only the case pile uses them). Hoist them into sharedDims
+// and this block can go.
 // ---------------------------------------------------------------------------
-motorCenterX = 0.5 * hopperWidth;
-motorCenterY = -0.35 * singulatorDiameter;
-dropHoleSize = 30;
-boreOffsetY  = -dropHoleSize / 4;    // the drop hole's lateral offset
-
-chordLength = singulatorDiameter * sin(singulatorExposureAngle/2);
-angleX      = (hopperWidth - chordLength) / 2;
-angleY      = angleX / tan(feedAngle);
+hopperXshift = -hopperWidth/2;
+hopperYshift = 0.35 * singulatorDiameter;
+chordLength  = singulatorDiameter * sin(singulatorExposureAngle/2);
+angleX       = (hopperWidth - chordLength) / 2;
+angleY       = angleX / tan(hopperConvergeAngle);
 
 // ---------------------------------------------------------------------------
 // Derived layout -- nothing below here should need touching
 // ---------------------------------------------------------------------------
-chuteY = motorCenterY - singulatorDiameter/2;
-// where the bore crosses the base plate, allowing for its lateral offset
-exitY  = chuteY + boreOffsetY / cos(BORE_ANGLE);
+// In the hopper's frame (origin on the motor axis, base plate underside at
+// z = 0) the bore's centreline crosses the base plane here, allowing for the
+// hole's dropHoleSize/4 offset.
+exitY = -singulatorDiameter/2 - (dropHoleSize/4) / cos(mountAngle);
 
-// discharge exit in world; also the pivot the feeder spins about, so the drop
-// stays put while the feeder turns
-pivX = motorCenterX;
-pivY = exitY * cos(FEEDER_TILT);
-pivZ = exitY * sin(FEEDER_TILT);
+// ...and where that point ends up once the feeder leans back
+exitTiltY = exitY * cos(mountAngle);
+exitTiltZ = exitY * sin(mountAngle);
 
-// fall direction after the tilt, then after the spin
-fallY = sin(FEEDER_TILT - BORE_ANGLE);
-fallZ = -cos(FEEDER_TILT - BORE_ANGLE);
-dirX  = -sin(FEEDER_SPIN) * fallY;
-dirY  =  cos(FEEDER_SPIN) * fallY;
+funnelRimZ = -dropToFunnelRim;
+funnelZ    = funnelRimZ - funnelHeight;     // funnel's local origin is its exit
+coilZ      = funnelZ - funnelToCoil;
+caseBaseZ  = funnelZ - funnelToCase;
+armTopZ    = caseBaseZ - caseToArm;
+armBotZ    = armTopZ - supportThickness;
 
-// lowest point of the hopper, so the funnel always clears it
-hopperLowZ = (motorCenterY - (singulatorDiameter/2 + wallThickness + 1.5)) * sin(FEEDER_TILT);
-
-funnelRimZ = min(hopperLowZ, pivZ) - dropToFunnelRim;
-tToRim     = (funnelRimZ - pivZ) / fallZ;   // follow the drop down to the rim
-axisX      = pivX + tToRim * dirX;          // funnel sits where the drop lands
-axisY      = pivY + tToRim * dirY;
-
-funnelZ   = funnelRimZ - funnelHeight;      // funnel's local origin is its exit
-coilZ     = funnelZ - funnelToCoil;
-caseBaseZ = funnelZ - funnelToCase;
-armTopZ   = caseBaseZ - caseToArm;
-armBotZ   = armTopZ - supportThickness;
-
-servoY = axisY + clDist + servoBackset;     // funnel arm to the wall, then the backset
+servoY = clDist + servoBackset;             // funnel arm to the wall, then the backset
 
 // ---------------------------------------------------------------------------
 // The real parts, pulled straight from their own files
@@ -162,63 +150,61 @@ module mock_thumbscrew() {
 
 // A loose pile standing on the pan floor and the wheel's exposed crown.
 // Cosmetic only, but generated rather than hardcoded so it still looks sane
-// if the hopper gets resized.
+// if the hopper gets resized. Laid out in the hopper outline's own frame
+// (corner at the origin), then shifted the same way hopper.scad shifts it.
 module mock_pile() {
-    crownY = motorCenterY + singulatorDiameter/2;
-    inset  = wallThickness / cos(feedAngle) + caseBodyD/2 + 1;
-    for (r = [0 : 5])
-        for (c = [-5 : 5]) {
-            y = crownY + 5 + r * 8.5;
-            x = motorCenterX + c * 10 + (r % 2) * 5;
-            leftWall = (y < angleY) ? angleX * (1 - y/angleY) : 0;
-            if (x > leftWall + inset
-             && x < hopperWidth - leftWall - inset
-             && y < hopperHeight - wallThickness - caseBodyD/2 - 1)
-                translate([x, y, baseThickness]) mock_case();
-        }
+    crownY = singulatorDiameter/2 - hopperYshift;
+    inset  = wallThickness / cos(hopperConvergeAngle) + caseBodyD/2 + 1;
+    translate([hopperXshift, hopperYshift, baseThickness])
+        for (r = [0 : 5])
+            for (c = [-5 : 5]) {
+                y = crownY + 5 + r * 8.5;
+                x = hopperWidth/2 + c * 10 + (r % 2) * 5;
+                leftWall = (y < angleY) ? angleX * (1 - y/angleY) : 0;
+                if (x > leftWall + inset
+                 && x < hopperWidth - leftWall - inset
+                 && y < hopperHeight - wallThickness - caseBodyD/2 - 1)
+                    translate([x, y, 0]) mock_case();
+            }
 }
 
 // ---------------------------------------------------------------------------
 // Assembly
 // ---------------------------------------------------------------------------
 
-// Feeder: leans back, then spins about its own discharge so the drop stays put
-translate([pivX, pivY, 0])
- rotate([0, 0, FEEDER_SPIN])
-  translate([-pivX, -pivY, 0])
-   rotate([FEEDER_TILT, 0, 0]) {
+// Feeder: lean back, slide the bore exit onto the origin, then spin about the
+// drop axis. Everything inside the braces is in hopper.scad's own frame.
+rotate([0, 0, FEEDER_SPIN])
+ translate([0, -exitTiltY, -exitTiltZ])
+  rotate([mountAngle, 0, 0]) {
         color("Gainsboro", hopperAlpha) hopper();
 
         if (showMotor)
-            color([0.13,0.13,0.15])
-                translate([motorCenterX, motorCenterY, 0]) mock_motor();
+            color([0.13,0.13,0.15]) mock_motor();
 
-        color("DarkViolet")
-            translate([motorCenterX, motorCenterY, baseThickness - 1]) shaftAdapter();
+        color("DarkViolet") translate([0, 0, baseThickness - 1]) shaftAdapter();
 
-        color("RoyalBlue")
-            translate([motorCenterX, motorCenterY, baseThickness]) part_singulator();
+        color("RoyalBlue") translate([0, 0, baseThickness]) part_singulator();
 
         if (showCases) {
             color("Goldenrod") mock_pile();
             color("Red")   // one sitting in a wheel pocket at the top of rotation
-                translate([motorCenterX,
-                           motorCenterY + singulatorDiameter/2 - caseCutout/2,
-                           baseThickness]) mock_case();
+                translate([0, singulatorDiameter/2 - caseCutout/2, baseThickness])
+                    mock_case();
         }
-   }
+  }
 
-// Everything below hangs on the funnel's vertical axis
+// Everything below hangs on the drop axis
 if (showFunnel)
-    color("LightSteelBlue", 0.55) translate([axisX, axisY, funnelZ]) part_funnel();
+    color("LightSteelBlue", funnelAlpha) translate([0, 0, funnelZ]) part_funnel();
 
 if (showCoil)
-    color("Peru") translate([axisX, axisY, coilZ]) mock_coil();
+    color("Peru") translate([0, 0, coilZ]) mock_coil();
 
-color("Goldenrod") translate([axisX, axisY, caseBaseZ]) mock_case();
+if (showCases)
+    color("Goldenrod") translate([0, 0, caseBaseZ]) mock_case();
 
 if (showArm)
-    color("SeaGreen")
-        translate([axisX, servoY, armBotZ]) rotate([0, 0, -90]) part_hornMount();
+    color("SeaGreen") translate([0, servoY, armBotZ]) rotate([0, 0, -90]) part_hornMount();
 
-translate([axisX, axisY, 0]) mock_thumbscrew();
+mock_thumbscrew();
