@@ -28,12 +28,11 @@ difference(){
                                 cube([caseCutout*1.5, caseCutout*1.5, hopperDepth-baseThickness+2]);
                     cylinder(h=hopperDepth-baseThickness+2, d=caseCutout);
                 }
-                //text
-                translate([0,(singulatorDiameter/2)-(caseCutout*1.5),hopperDepth-baseThickness-1])
-                    linear_extrude(1)
-                        text(str(caseCutout), halign="center", valign="top");
         }
     }
-
+    //text
+    translate([0,0,hopperDepth-baseThickness-1])
+        linear_extrude(1)
+            text(str(caseCutout), halign="center", valign="center");
     
 }
