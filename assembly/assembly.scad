@@ -58,13 +58,22 @@ caseNeck     = 38;
 cabinetWallThk  = 3;
 cabinetLeft     = 170;  // panel extent past the drop axis, feeder side (-X)
 cabinetRight    = 110;  // ...and the other side (+X)
-cabinetAbove    = 10;   // panel top, above the funnel rim
+cabinetAbove    = 160;  // panel top, above the funnel rim
 cabinetBelow    = 50;   // panel bottom, below the horn arm
 armSlotW        = 44;   // slot the horn arm swings through
 armSlotClear    = 2;    // above and below the arm, in that slot
 leadGap         = 12;   // centre-to-centre of the coil leads at the wall
 leadIntoCabinet = 40;   // how far the leads run on past the wall's inner face
 grommetLip      = 2.5;
+
+/* [Feeder bracket mock] */
+/* A standoff filling the gap between the hopper's side and the wall, shaped
+   to the hopper where it touches. Assumes FEEDER_SPIN = 90, which is what
+   puts the hopper's +X side square to the wall.
+*/
+bracketFromY = -25;     // hopper frame: how far down the boss the bracket starts
+bracketH     = 40;      // hopper frame: height up off the base plate underside
+bracketBolts = 3;       // bolts through into the wall
 
 /* [Display] */
 showCases   = true;
@@ -73,6 +82,7 @@ showCoil    = true;
 showFunnel  = true;
 showArm     = true;
 showCabinet = true;
+showBracket = true;
 hopperAlpha = 0.35;   // 1 = solid; lower to see the wheel and motor through it
 funnelAlpha = 1;
 cabinetAlpha = 1;     // lower to see the leads and servo inside
@@ -81,14 +91,17 @@ cabinetAlpha = 1;     // lower to see the leads and servo inside
 // Values duplicated from hopper.scad
 //
 // These live inside hopper.scad rather than sharedDims.scad, so this file has
-// to mirror them (only the case pile uses them). Hoist them into sharedDims
-// and this block can go.
+// to mirror them (the case pile and the bracket use them). Hoist them into
+// sharedDims and this block can go.
 // ---------------------------------------------------------------------------
 hopperXshift = -hopperWidth/2;
 hopperYshift = 0.35 * singulatorDiameter;
 chordLength  = singulatorDiameter * sin(singulatorExposureAngle/2);
 angleX       = (hopperWidth - chordLength) / 2;
 angleY       = angleX / tan(hopperConvergeAngle);
+hopperPoints = [[0, angleY], [0, hopperHeight], [hopperWidth, hopperHeight],
+                [hopperWidth, angleY], [hopperWidth - angleX, 0], [angleX, 0]];
+bossD        = singulatorDiameter + 2*wallThickness + 3;
 
 // ---------------------------------------------------------------------------
 // Derived layout -- nothing below here should need touching
@@ -129,6 +142,15 @@ use <../cad/feeder/shaftAdapter.scad>;  // provides shaftAdapter()
 module part_singulator() { include <../cad/feeder/singulator.scad>; }
 module part_funnel()     { include <../cad/feeder/funnel.scad>; }
 module part_hornMount()  { include <../cad/feeder/hornMount.scad>; }
+
+// Takes children drawn in hopper.scad's own frame and puts them in the world:
+// lean back, slide the bore exit onto the origin, then spin about the drop axis.
+module in_feeder_frame() {
+    rotate([0, 0, FEEDER_SPIN])
+     translate([0, -exitTiltY, -exitTiltZ])
+      rotate([mountAngle, 0, 0])
+        children();
+}
 
 // ---------------------------------------------------------------------------
 // Stand-ins for things with no source file
@@ -201,6 +223,9 @@ module mock_cabinet_wall() {
         for (i = [1 : funnelMountHoleCount])
             translate([0, clDist - 1, funnelZ + funnelHeight * i / (funnelMountHoleCount + 1)])
                 rotate([-90, 0, 0]) cylinder(d = 4.5, h = cabinetWallThk + 2, $fn = 24);
+
+        // the feeder bracket's bolts
+        if (showBracket) in_feeder_frame() mock_bracket_bolts();
     }
 }
 
@@ -213,6 +238,32 @@ module mock_grommet() {
         translate([0, y, leadZ]) rotate([-90, 0, 0])
             linear_extrude(1.5)
                 difference() { lead_hole_2d(2 * grommetLip); lead_hole_2d(0); }
+}
+
+// Standoff from the hopper's side to the wall, in the hopper's own frame
+// (where the wall face is x = clDist). A block cut back by the hopper's solid
+// envelope -- outline plus retaining-wall boss -- so it seats on whatever it
+// touches, with bolts running out through the wall.
+module mock_bracket() {
+    difference() {
+        translate([0, bracketFromY, 0])
+            cube([clDist, hopperHeight + hopperYshift - bracketFromY, bracketH]);
+
+        translate([hopperXshift, hopperYshift, -1])
+            linear_extrude(bracketH + 2) polygon(hopperPoints);
+        translate([0, 0, -1]) cylinder(d = bossD, h = bracketH + 2);
+    }
+}
+
+module mock_bracket_bolts() {
+    span = hopperHeight + hopperYshift - bracketFromY;
+    for (i = [1 : bracketBolts])
+        translate([clDist - 12, bracketFromY + span * i / (bracketBolts + 1), bracketH/2])
+            rotate([0, 90, 0]) {
+                cylinder(d = 5, h = 12 + cabinetWallThk + 4, $fn = 24);   // shank
+                translate([0, 0, 12 + cabinetWallThk])
+                    cylinder(d = 9.2, h = 4, $fn = 6);                    // nut inside
+            }
 }
 
 // MG90S, output shaft on the origin pointing up, top of the case at z = 0.
@@ -263,11 +314,7 @@ module mock_pile() {
 // Assembly
 // ---------------------------------------------------------------------------
 
-// Feeder: lean back, slide the bore exit onto the origin, then spin about the
-// drop axis. Everything inside the braces is in hopper.scad's own frame.
-rotate([0, 0, FEEDER_SPIN])
- translate([0, -exitTiltY, -exitTiltZ])
-  rotate([mountAngle, 0, 0]) {
+in_feeder_frame() {
         color("Gainsboro", hopperAlpha) hopper();
 
         if (showMotor)
@@ -282,6 +329,11 @@ rotate([0, 0, FEEDER_SPIN])
             color("Red")   // one sitting in a wheel pocket at the top of rotation
                 translate([0, singulatorDiameter/2 - caseCutout/2, baseThickness])
                     mock_case();
+        }
+
+        if (showBracket) {
+            color("DarkOrange") mock_bracket();
+            color("DimGray") mock_bracket_bolts();
         }
   }
 
