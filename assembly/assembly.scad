@@ -50,14 +50,32 @@ caseNeckD    = 6.4;
 caseShoulder = 32;
 caseNeck     = 38;
 
+/* [Cabinet side mock] */
+/* The wall's outer face is the plane y = clDist, where the funnel arm ends.
+   The cabinet interior is +Y. servoBackset is measured from this outer face,
+   so the servo body only clears the wall while cabinetWallThk < ~3.9.
+*/
+cabinetWallThk  = 3;
+cabinetLeft     = 170;  // panel extent past the drop axis, feeder side (-X)
+cabinetRight    = 110;  // ...and the other side (+X)
+cabinetAbove    = 170;  // panel top, above the discharge exit
+cabinetBelow    = 50;   // panel bottom, below the horn arm
+armSlotW        = 44;   // slot the horn arm swings through
+armSlotClear    = 2;    // above and below the arm, in that slot
+leadGap         = 12;   // centre-to-centre of the coil leads at the wall
+leadIntoCabinet = 40;   // how far the leads run on past the wall's inner face
+grommetLip      = 2.5;
+
 /* [Display] */
 showCases   = true;
 showMotor   = true;
 showCoil    = true;
 showFunnel  = true;
 showArm     = true;
+showCabinet = true;
 hopperAlpha = 0.35;   // 1 = solid; lower to see the wheel and motor through it
 funnelAlpha = 1;
+cabinetAlpha = 1;     // lower to see the leads and servo inside
 
 // ---------------------------------------------------------------------------
 // Values duplicated from hopper.scad
@@ -92,6 +110,9 @@ armTopZ    = caseBaseZ - caseToArm;
 armBotZ    = armTopZ - supportThickness;
 
 servoY = clDist + servoBackset;             // funnel arm to the wall, then the backset
+
+coilR  = coilID/2 + coilTube/2;             // coil tube centreline radius
+leadZ  = coilZ;                             // height the leads pass the wall at
 
 // ---------------------------------------------------------------------------
 // The real parts, pulled straight from their own files
@@ -130,6 +151,76 @@ module mock_coil() {
     for (i = [0 : coilTurns - 1])
         translate([0, 0, i*coilPitch - (coilTurns-1)*coilPitch/2])
             rotate_extrude() translate([coilID/2 + coilTube/2, 0]) circle(d = coilTube);
+}
+
+// A copper tube run through a list of points.
+module tube_path(pts, d) {
+    for (i = [0 : len(pts) - 2])
+        hull() {
+            translate(pts[i])     sphere(d = d, $fn = 24);
+            translate(pts[i + 1]) sphere(d = d, $fn = 24);
+        }
+}
+
+// The two coil leads: each leaves its end turn tangentially, heading for the
+// wall, closes up to leadGap, then runs straight through the grommet.
+module mock_leads() {
+    for (s = [1, -1]) {
+        turnZ = coilZ + s * (coilTurns - 1) * coilPitch / 2;
+        tube_path([
+            [s * coilR,     0,              turnZ],
+            [s * coilR,     coilR + 5,      turnZ],
+            [s * leadGap/2, coilR + 20,     leadZ],
+            [s * leadGap/2, clDist + cabinetWallThk + leadIntoCabinet, leadZ]
+        ], coilTube);
+    }
+}
+
+// The lead pass-through: a slotted hole, grown by d.
+module lead_hole_2d(d = 0) {
+    hull() for (s = [1, -1])
+        translate([s * leadGap/2, 0]) circle(d = coilTube + 2 + 2*d, $fn = 48);
+}
+
+// Flat side panel of the cabinet, outer face at y = clDist.
+module mock_cabinet_wall() {
+    bot = armBotZ - cabinetBelow;
+    difference() {
+        translate([-cabinetLeft, clDist, bot])
+            cube([cabinetLeft + cabinetRight, cabinetWallThk, cabinetAbove - bot]);
+
+        // slot the horn arm swings through
+        translate([-armSlotW/2, clDist - 1, armBotZ - armSlotClear])
+            cube([armSlotW, cabinetWallThk + 2, supportThickness + 2*armSlotClear]);
+
+        // lead pass-through, sized for the grommet
+        translate([0, clDist - 1, leadZ]) rotate([-90, 0, 0])
+            linear_extrude(cabinetWallThk + 2) lead_hole_2d(grommetLip);
+
+        // screws into the end of the funnel arm
+        for (i = [1 : funnelMountHoleCount])
+            translate([0, clDist - 1, funnelZ + funnelHeight * i / (funnelMountHoleCount + 1)])
+                rotate([-90, 0, 0]) cylinder(d = 4.5, h = cabinetWallThk + 2, $fn = 24);
+    }
+}
+
+// Rubber grommet in the lead hole, lipped on both faces of the wall.
+module mock_grommet() {
+    translate([0, clDist - 1.5, leadZ]) rotate([-90, 0, 0])
+        linear_extrude(cabinetWallThk + 3)
+            difference() { lead_hole_2d(grommetLip); lead_hole_2d(0); }
+    for (y = [clDist - 1.5, clDist + cabinetWallThk])
+        translate([0, y, leadZ]) rotate([-90, 0, 0])
+            linear_extrude(1.5)
+                difference() { lead_hole_2d(2 * grommetLip); lead_hole_2d(0); }
+}
+
+// MG90S, output shaft on the origin pointing up, top of the case at z = 0.
+module mock_servo() {
+    translate([-6.1, -6.1, -22.7]) cube([22.8, 12.2, 22.7]);           // case
+    translate([-10.8, -6.1, -6.5]) cube([32.2, 12.2, 2.5]);            // mounting ears
+    cylinder(d = 11.8, h = 1.5, $fn = 48);                            // top boss
+    cylinder(d = 4.8,  h = 4,   $fn = 24);                            // spline
 }
 
 // COTS thumbscrew, head up: the case stands on the flat top of the knurled
@@ -204,7 +295,18 @@ if (showCoil)
 if (showCases)
     color("Goldenrod") translate([0, 0, caseBaseZ]) mock_case();
 
-if (showArm)
+if (showArm) {
     color("SeaGreen") translate([0, servoY, armBotZ]) rotate([0, 0, -90]) part_hornMount();
+    // servo sits inside the cabinet, horn flat under the arm
+    color("MidnightBlue") translate([0, servoY, armBotZ - 2]) mock_servo();
+}
 
 mock_thumbscrew();
+
+if (showCoil)
+    color("Peru") mock_leads();
+
+if (showCabinet) {
+    color([0.62, 0.65, 0.70], cabinetAlpha) mock_cabinet_wall();
+    color([0.1, 0.1, 0.1]) mock_grommet();
+}
