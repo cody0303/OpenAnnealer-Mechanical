@@ -19,6 +19,10 @@ hopperPoints = [p0, p1, p2, p3, p4, p5];
 motorCenterX=0.5*hopperWidth;
 motorCenterY=-0.35*singulatorDiameter;
 
+// Wrapped as a module so assembly/assembly.scad can place it.
+// Opening this file on its own still renders the part, and the STL
+// release workflow is unaffected.
+module hopper() {
 difference(){
     union(){
         difference(){
@@ -71,7 +75,10 @@ difference(){
     //drop hole
     dropHoleSize=30;
     translate([motorCenterX, motorCenterY-(singulatorDiameter/2),0])
-        rotate([-30,0,0])
-            translate([0,0,-20])
-                cylinder(h=60, d=dropHoleSize);
+        rotate([-45,0,0])
+            translate([0,-dropHoleSize/4,-dropHoleSize])
+                cylinder(h=dropHoleSize*2, d=dropHoleSize);
 }
+}
+
+hopper();

@@ -2,6 +2,10 @@ include <sharedDims.scad>
 use <../../catchnhole/catchnhole.scad>;
 shaftSquareBool=false;
 
+// Wrapped as a module so assembly/assembly.scad can place it.
+// Opening this file on its own still renders the part, and the STL
+// release workflow is unaffected.
+module shaftAdapter() {
 difference(){
     //core adapter
     cylinder(h=flatLength, d=adapterDia);
@@ -40,3 +44,6 @@ difference(){
                     cylinder(h=4,d=6);
             }
 }
+}
+
+shaftAdapter();
