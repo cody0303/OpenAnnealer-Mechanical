@@ -31,8 +31,10 @@ difference(){
         }
     }
     //text
-    translate([0,0,hopperDepth-baseThickness-1])
-        linear_extrude(1)
-            text(str(caseCutout), halign="center", valign="center");
-    
+    translate([0,0,hopperDepth-baseThickness-1]){
+        linear_extrude(1){
+            text(text=str(caseCutout), halign="center", valign="bottom");
+            text("OpenAnnealer", size=6, halign="center", valign="top");
+        }
+    }
 }
