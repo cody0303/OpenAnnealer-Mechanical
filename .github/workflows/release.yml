@@ -16,22 +16,44 @@ jobs:
       - name: Install OpenSCAD nightly
         run: sudo snap install openscad-nightly
 
-      - name: Render STL from SCAD files
+      - name: Render STL (and DXF) from SCAD files
+        # Include-only files (sharedDims.scad, layout.scad) have no top-level
+        # geometry, so OpenSCAD reports "top level object is empty". Those are
+        # skipped with a warning instead of failing; any other error fails.
+        # Parts in a folder with "flat" in its name (e.g. cad/cabinetFlat/)
+        # also get a cut-ready DXF from tools/export_panel_dxf.py -- not
+        # OpenSCAD's own DXF export, which cutting services reject.
         run: |
           mkdir -p build
           fail=0
-          find cad -name "*.scad" -print0 | while IFS= read -r -d '' f; do
+          while IFS= read -r -d '' f; do
             echo "::group::Rendering $f"
-            out="build/$(basename "${f%.scad}").stl"
-            if ! openscad-nightly --enable=import-function -o "$out" "$f"; then
-              echo "FAILED: $f"
-              fail=1
+            name="build/$(basename "${f%.scad}")"
+            if ! log=$(openscad-nightly --enable=import-function -o "$name.stl" "$f" 2>&1); then
+              echo "$log"
+              if grep -qi "top level object is empty" <<<"$log"; then
+                echo "::warning file=$f::No top-level geometry, skipped"
+              else
+                echo "::error file=$f::STL render failed"
+                fail=1
+              fi
+            else
+              echo "$log"
+            fi
+            dir=$(dirname "$f")
+            if [[ "${dir,,}" == *flat* ]]; then
+              if ! python3 tools/export_panel_dxf.py "$f" -o "$name.dxf" --openscad openscad-nightly; then
+                echo "::error file=$f::DXF export failed"
+                fail=1
+              fi
             fi
             echo "::endgroup::"
-          done
+          done < <(find cad -name "*.scad" -print0)
           exit $fail
 
-      - name: Create release with STL files
+      - name: Create release with STL and DXF files
         uses: softprops/action-gh-release@v2
         with:
-          files: build/*.stl
+          files: |
+            build/*.stl
+            build/*.dxf
