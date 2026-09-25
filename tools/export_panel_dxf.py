@@ -29,7 +29,6 @@ import json
 import os
 import subprocess
 import sys
-import tempfile
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
@@ -37,21 +36,25 @@ DEFAULT_SCAD = REPO / "cad" / "cabinetFlat" / "sidePanel.scad"
 
 
 def panel_features(openscad, scad):
-    """Run OpenSCAD in echo mode and return the part's panelFeatures()."""
-    with tempfile.TemporaryDirectory() as tmp:
-        out = Path(tmp) / "features.echo"
-        run = subprocess.run(
-            [openscad, "--enable=import-function", "-D", "echoFeatures=true",
-             "--export-format", "echo", "-o", str(out), str(scad)],
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-            universal_newlines=True)
-        if run.returncode != 0 or not out.exists():
-            sys.stderr.write(run.stdout + run.stderr)
-            sys.exit("OpenSCAD failed on {}".format(scad))
-        for line in out.read_text().splitlines():
-            prefix = "ECHO: panelFeatures = "
-            if line.startswith(prefix):
-                return json.loads(line[len(prefix):])
+    """Run OpenSCAD in echo mode and return the part's panelFeatures().
+
+    The echo goes to stdout (`-o -`) rather than a temp file: OpenSCAD is
+    often a snap (it is on the release runner), and snaps get a private /tmp,
+    so a file written there by OpenSCAD never shows up for this script.
+    """
+    run = subprocess.run(
+        [openscad, "--enable=import-function", "-D", "echoFeatures=true",
+         "--export-format", "echo", "-o", "-", str(scad)],
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        universal_newlines=True)
+    if run.returncode != 0:
+        sys.stderr.write(run.stdout + run.stderr)
+        sys.exit("OpenSCAD failed on {}".format(scad))
+    prefix = "ECHO: panelFeatures = "
+    for line in (run.stdout + "\n" + run.stderr).splitlines():
+        if line.startswith(prefix):
+            return json.loads(line[len(prefix):])
+    sys.stderr.write(run.stdout + run.stderr)
     sys.exit("{} didn't echo panelFeatures -- does it define panelFeatures() "
              "and an echoFeatures flag?".format(scad))
 
