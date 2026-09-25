@@ -20,12 +20,17 @@ include <../feeder/layout.scad>
 /* [Export] */
 exportDXF      = false; // true: output the 2D face only (preview; see above)
 echoFeatures   = false; // true: echo panelFeatures() for tools/export_panel_dxf.py
+// The panel is taller than a printer bed, so the STL comes as two tiles, split
+// across the one band nothing crosses (between the arm slot and the lead
+// grommet). They're joined by the cabinet's belt rail, which runs round the
+// inside at that height. Cut from sheet, it stays one piece: the DXF is whole.
+panelTile      = "tiles";   // [tiles, whole, upper, lower]
 
 /* [Panel] */
 // Defaults are the smallest panel that still carries everything. The hopper
 // overhangs the top edge, which sits just above its upper bolt.
 panelFeederSide = 100;  // past the drop axis on the feeder's side -- meets the hopper face at the top edge
-panelFarSide    = 25;   // past the drop axis on the other side -- just clears the servo mount
+panelFarSide    = 32;   // past the drop axis on the other side -- leaves a solid strip beside the arm slot
 panelTop        = 100;  // above the discharge exit
 panelBelowArm   = 76.2; // clear panel below the horn arm's underside (3 in)
 panelCornerR    = 3;    // outside corners
@@ -34,6 +39,13 @@ panelCornerR    = 3;    // outside corners
 boltClearD   = 5.5;     // M5 clearance
 armSlotW     = 44;      // slot the horn arm swings through
 armSlotClear = 2;       // above and below the arm, in that slot
+seamScrewD   = 3.4;     // M3 clearance, into heat-set inserts in the belt rail
+seamScrewOff = 8;       // seam screws, above and below the split line
+
+// Split line for printing: halfway between the top of the arm slot and the
+// bottom of the grommet hole.
+function panelSplitZ() =
+    ((armTopZ + armSlotClear) + (leadZ - ((coilTube + 2)/2 + grommetLip))) / 2;
 
 // The lead pass-through: a slotted hole, grown by d. The assembly uses it for
 // the grommet too.
@@ -66,7 +78,11 @@ function panelFeatures() =
             ["circle", p[0], p[2], boltClearD]],
         //M5 clearance: servo mount, inside
         [for (x = [-servoMountBoltX, servoMountBoltX])
-            ["circle", x, servoMountTopZ - servoMountH/2, boltClearD]]
+            ["circle", x, servoMountTopZ - servoMountH/2, boltClearD]],
+        //M3 clearance: into the belt rail, either side of the split line
+        [for (i = [0 : 2], s = [-1, 1])
+            let (x = -panelFeederSide + 15 + i*(panelFeederSide + panelFarSide - 30)/2)
+            ["circle", x, panelSplitZ() + s*seamScrewOff, seamScrewD]]
     );
 
 module feature_2d(f) {
@@ -96,6 +112,29 @@ module sidePanel() {
         sidePanel2d();
 }
 
+// One printing tile: "upper" or "lower" of the split line.
+module sidePanelTile(which) {
+    bot = armBotZ - panelBelowArm;
+    split = panelSplitZ();
+    intersection() {
+        sidePanel();
+        if (which == "upper") translate([-500, split, -1]) cube([1000, 500, 100]);
+        else                  translate([-500, split - 500, -1]) cube([1000, 500, 100]);
+    }
+}
+
+tileW = panelFeederSide + panelFarSide;
+assert(tileW <= printBed, "the panel is wider than the printer bed");
+assert(panelTop - panelSplitZ() <= printBed && panelSplitZ() - (armBotZ - panelBelowArm) <= printBed,
+       "a panel tile is taller than the printer bed");
+
 if (echoFeatures) echo(panelFeatures = panelFeatures());
 if (exportDXF) sidePanel2d();
-else sidePanel();
+else if (panelTile == "whole") sidePanel();
+else if (panelTile == "upper") sidePanelTile("upper");
+else if (panelTile == "lower") sidePanelTile("lower");
+else {
+    // both, side by side for printing
+    sidePanelTile("upper");
+    translate([tileW + 10, 0, 0]) sidePanelTile("lower");
+}

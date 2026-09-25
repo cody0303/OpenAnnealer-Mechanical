@@ -28,11 +28,11 @@ include <sharedDims.scad>
 
 /* [Stock horn -- MEASURE YOURS] */
 armCount  = 2;
-hornThk   = 1.5;
-armW      = 5.0;
-armLen    = 9.5;
-holeR     = 4.5;    // centre to innermost hole
-holePitch = 2.5;
+hornThk   = 2.1;
+armW      = 5.2;
+armLen    = 15.5;
+holeR     = 6;    // centre to innermost hole
+holePitch = 4;
 holeCount = 3;
 holeD     = 1.3;    // the horn's own holes; screws thread into the print below
 hubD      = 7.0;

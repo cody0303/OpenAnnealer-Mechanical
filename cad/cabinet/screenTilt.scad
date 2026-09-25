@@ -36,7 +36,18 @@ knobHoleD  = 24;        // big on purpose: takes in the two LEDs either side of 
                         // its centre on the drawing), so they light the knob and glow round its skirt
 knobBackAt = 10.25;     // measured: board face to the back of the knob
 resetAt    = [104.99 - 12.53, 8.71];
-resetHoleD = 4;
+resetBodyH = 4;         // measured: board face to the top of the reset button's body...
+resetStemH = 4 + 3.25;  // ...and to the top of its stem
+// The reset (back/stop) is pressed with a fingertip, so it sits at the bottom
+// of a wide funnel reaching in from the face, with its stem coming up through
+// the hole in the bottom. The opening is centred below the button, away from
+// the knob hole, and every wall leans in at 45 deg or less away from the face,
+// so it prints face-down without support.
+resetStemIn   = 2.5;    // how far the stem comes up into the well
+resetHoleD    = 5;      // the well's bottom, round the stem -- ASSUMED stem up to ~4 mm across
+resetWellD    = 10;     // opening in the face
+resetWellDrop = 0.5;    // ...centred this far below the button, away from the knob hole
+resetWellWall = 1.6;
 frontStack = 6.1;       // measured: board face to the front of the LCD (= standoff height)
 
 /* [Housing] */
@@ -65,6 +76,18 @@ boxW   = pcbW + 2*clr + 2*wallT;
 boxH   = pcbH + 2*clr + 2*wallT;
 boxDep = plateT + frontStack + pcbThk + backClr;
 
+resetWellDepth = plateT + frontStack - resetStemH + resetStemIn;   // face to the well bottom
+resetWellAt    = fromCentre(resetAt) - [0, resetWellDrop];          // centre of the opening
+assert(resetWellDepth > plateT, "the reset stem reaches the face -- no well needed");
+assert(resetWellDepth <= plateT + frontStack - resetBodyH - 0.5,
+       "the reset well's bottom hits the button's body -- cut resetStemIn");
+assert(resetWellD/2 + resetWellDrop - resetHoleD/2 <= resetWellDepth,
+       "the reset well's lower wall leans past 45 deg -- narrow resetWellD or cut resetWellDrop");
+assert(norm(fromCentre(knobAt) - resetWellAt) - knobHoleD/2 - resetWellD/2 >= 1,
+       "the reset well runs into the knob hole -- narrow resetWellD");
+assert(resetWellAt[1] - resetWellD/2 >= -(pcbH/2 + clr),
+       "the reset well runs into the bottom wall -- narrow resetWellD or cut resetWellDrop");
+
 // The housing is a box square to the display face (the "plate frame": x
 // across, y up the face, z out of it, z = 0 on the outer face), hulled back
 // to the wall. Placed so its back-top edge just touches the wall and its
@@ -87,6 +110,15 @@ module hulled_to_wall(a, w, h, z0, z1, pastWall = 0) {
         translate([0, 0, -pastWall])
             linear_extrude(pastWall + 0.01)
                 projection() in_plate_frame(a) translate([-w/2, -h/2, z0]) cube([w, h, z1 - z0]);
+    }
+}
+
+// the reset well in the plate frame: its hollow, or grown by g for its shell
+// (the hollow runs out past the face by `past`)
+module reset_well(g = 0, past = 0) {
+    hull() {
+        translate([resetWellAt[0], resetWellAt[1], -0.01]) cylinder(d=resetWellD + 2*g, h=0.01 + past);
+        translate(concat(fromCentre(resetAt), -resetWellDepth)) cylinder(d=resetHoleD + 2*g, h=0.01);
     }
 }
 
@@ -125,6 +157,9 @@ module screenTilt(a = screenTilt) {
                 for (p = holes)
                     translate([p[0], p[1], -plateT - frontStack])
                         cylinder(d=standoffD, h=frontStack + 0.01);
+            //reset well, reaching in from the face toward the button
+            in_plate_frame(a)
+                reset_well(resetWellWall);
         }
 
         //display, knob and reset through the face
@@ -140,8 +175,9 @@ module screenTilt(a = screenTilt) {
             }
             translate([knob[0], knob[1], -plateT - 1])
                 cylinder(d=knobHoleD, h=plateT + 2);
-            translate([reset[0], reset[1], -plateT - 1])
-                cylinder(d=resetHoleD, h=plateT + 2);
+            translate([reset[0], reset[1], -resetWellDepth - 1])
+                cylinder(d=resetHoleD, h=resetWellDepth + 2);
+            reset_well(0, 0.01);
             //standoff pilots
             for (p = holes)
                 translate([p[0], p[1], -plateT - frontStack - 1])
