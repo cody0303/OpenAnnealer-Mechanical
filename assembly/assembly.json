@@ -1,0 +1,50 @@
+{
+    "fileFormatVersion": "1",
+    "parameterSets": {
+        "New set 1": {
+            "caseBodyD": "9.5",
+            "caseLen": "44.700000000000003",
+            "caseNeck": "38",
+            "caseNeckD": "6.4000000000000004",
+            "caseShoulder": "32",
+            "coilID": "26",
+            "coilPitch": "5",
+            "coilTurns": "4",
+            "hopperAlpha": "0.34999999999999998",
+            "nutAcross": "9.1999999999999993",
+            "nutH": "4",
+            "showArm": "true",
+            "showCases": "true",
+            "showCoil": "true",
+            "showFunnel": "true",
+            "showMotor": "true",
+            "thumbHeadD": "14",
+            "thumbHeadH": "7"
+        },
+        "New set 2": {
+            "cabinetAlpha": "1",
+            "caseBodyD": "9.5",
+            "caseLen": "44.700000000000003",
+            "caseNeck": "38",
+            "caseNeckD": "6.4000000000000004",
+            "caseShoulder": "32",
+            "coilID": "26",
+            "coilPitch": "5",
+            "coilTurns": "4",
+            "feederSide": "left",
+            "funnelAlpha": "1",
+            "hopperAlpha": "0.34999999999999998",
+            "leadIntoCabinet": "40",
+            "nutAcross": "9.1999999999999993",
+            "nutH": "4",
+            "showArm": "true",
+            "showCabinet": "true",
+            "showCases": "true",
+            "showCoil": "true",
+            "showFunnel": "true",
+            "showMotor": "true",
+            "thumbHeadD": "14",
+            "thumbHeadH": "7"
+        }
+    }
+}

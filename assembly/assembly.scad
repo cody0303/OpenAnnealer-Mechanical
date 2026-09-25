@@ -8,34 +8,32 @@
 // `find cad -name "*.scad"` and renders every hit to STL, and this is a
 // view-only file, not a part. Don't export it.
 //
-// Only things with no source file are modelled locally: the motor, the
-// induction coil, the thumbscrew and the cases. Those are rough stand-ins for
-// visualisation, not parts to print.
+// Only things with no source file are modelled locally: the motor, servo,
+// induction coil, thumbscrew, grommet and the cases. Those are rough stand-ins
+// for visualisation, not parts to print.
 //
-// World frame: the Z axis IS the drop axis. The funnel, coil, case and
-// thumbscrew all sit on it at x = y = 0, and z = 0 is where the drop bore's
-// centreline crosses the hopper's base plane. The funnel arm points +Y,
-// toward the cabinet wall.
+// Where everything sits comes from cad/feeder/layout.scad, which the side
+// panel shares, so the panel's holes always land on the parts. The world
+// frame is described there: Z is the drop axis, the funnel arm points +Y to
+// the cabinet wall. Stack spacings are in sharedDims.
+//
+// feederSide flips the unit left/right. It does it by turning the feeder
+// +/-90 deg about the drop axis, not by mirroring: the hopper is symmetric
+// with mounting on both sides, so the same printed parts build either hand.
 
-include <../cad/feeder/sharedDims.scad>
+include <../cad/feeder/layout.scad>
 
 /* [Feeder] */
 /* The feeder leans back by mountAngle and the drop bore is cut at mountAngle
    (both from sharedDims), so the discharge always falls dead vertical.
 */
-FEEDER_SPIN = 90;   // feeder rotation about the drop axis, vs the funnel arm
-
-/* [Vertical spacings] */
-dropToFunnelRim = 18;   // discharge exit down to the funnel's top rim
-funnelToCoil    = 15;   // funnel exit down to the centre of the coil
-funnelToCase    = 50;   // funnel exit down to the case base / thumbscrew top
-caseToArm       = 16;   // case base down to the top face of the horn arm
+// which side of the stack the feeder sits, seen from outside the cabinet
+feederSide = "left";  // [left, right]
 
 /* [Induction coil mock] */
 coilTurns = 4;
 coilID    = 26;
-coilTube  = 4;
-coilPitch = 5;
+coilPitch = 5;          // tube OD and the leads' spacing are in sharedDims
 
 /* [Thumbscrew mock] */
 thumbHeadD = 14;
@@ -50,30 +48,8 @@ caseNeckD    = 6.4;
 caseShoulder = 32;
 caseNeck     = 38;
 
-/* [Cabinet side mock] */
-/* The wall's outer face is the plane y = clDist, where the funnel arm ends.
-   The cabinet interior is +Y. servoBackset is measured from this outer face,
-   so the servo body only clears the wall while cabinetWallThk < ~3.9.
-*/
-cabinetWallThk  = 3;
-cabinetLeft     = 170;  // panel extent past the drop axis, feeder side (-X)
-cabinetRight    = 110;  // ...and the other side (+X)
-cabinetAbove    = 160;  // panel top, above the funnel rim
-cabinetBelow    = 50;   // panel bottom, below the horn arm
-armSlotW        = 44;   // slot the horn arm swings through
-armSlotClear    = 2;    // above and below the arm, in that slot
-leadGap         = 12;   // centre-to-centre of the coil leads at the wall
+/* [Coil leads mock] */
 leadIntoCabinet = 40;   // how far the leads run on past the wall's inner face
-grommetLip      = 2.5;
-
-/* [Feeder bracket mock] */
-/* A plain spacer between the flat spot on the hopper's +X side and the wall.
-   Assumes FEEDER_SPIN = 90, which is what puts that side square to the wall.
-   Its thickness is whatever gap is left: clDist - hopperWidth/2. Dimensions
-   are in the hopper's own frame.
-*/
-bracketFromY = 0;       // lower edge, from the motor axis
-bracketH     = 40;      // up off the base plate's underside
 
 /* [Display] */
 showCases   = true;
@@ -82,68 +58,39 @@ showCoil    = true;
 showFunnel  = true;
 showArm     = true;
 showCabinet = true;
-showBracket = true;
 hopperAlpha = 0.35;   // 1 = solid; lower to see the wheel and motor through it
 funnelAlpha = 1;
 cabinetAlpha = 1;     // lower to see the leads and servo inside
 
-// ---------------------------------------------------------------------------
-// Values duplicated from hopper.scad
-//
-// These live inside hopper.scad rather than sharedDims.scad, so this file has
-// to mirror them (the case pile and the bracket use them). Hoist them into
-// sharedDims and this block can go.
-// ---------------------------------------------------------------------------
-hopperXshift = -hopperWidth/2;
-hopperYshift = 0.35 * singulatorDiameter;
-chordLength  = singulatorDiameter * sin(singulatorExposureAngle/2);
-angleX       = (hopperWidth - chordLength) / 2;
-angleY       = angleX / tan(hopperConvergeAngle);
+// +1 puts the feeder on -X (left, seen from outside), -1 on +X
+hand       = (feederSide == "right") ? -1 : 1;
+feederSpin = 90 * hand;     // turns the hopper's +/-X side square to the wall
 
-// ---------------------------------------------------------------------------
-// Derived layout -- nothing below here should need touching
-// ---------------------------------------------------------------------------
-// In the hopper's frame (origin on the motor axis, base plate underside at
-// z = 0) the bore's centreline crosses the base plane here, allowing for the
-// hole's dropHoleSize/4 offset.
-exitY = -singulatorDiameter/2 - (dropHoleSize/4) / cos(mountAngle);
-
-// ...and where that point ends up once the feeder leans back
-exitTiltY = exitY * cos(mountAngle);
-exitTiltZ = exitY * sin(mountAngle);
-
-funnelRimZ = -dropToFunnelRim;
-funnelZ    = funnelRimZ - funnelHeight;     // funnel's local origin is its exit
-coilZ      = funnelZ - funnelToCoil;
-caseBaseZ  = funnelZ - funnelToCase;
-armTopZ    = caseBaseZ - caseToArm;
-armBotZ    = armTopZ - supportThickness;
-
-servoY = clDist + servoBackset;             // funnel arm to the wall, then the backset
-
-coilR  = coilID/2 + coilTube/2;             // coil tube centreline radius
-leadZ  = coilZ;                             // height the leads pass the wall at
+coilR = coilID/2 + coilTube/2;              // coil tube centreline radius
 
 // ---------------------------------------------------------------------------
 // The real parts, pulled straight from their own files
 // ---------------------------------------------------------------------------
-// hopper.scad and shaftAdapter.scad are wrapped as modules in their own files,
-// because they `use <catchnhole>` -- and a nested `use` resolves relative to
-// whichever file pulls it in, so including them from here can't find it.
+// These are wrapped as modules in their own files and pulled in with `use`.
+// hopper, shaftAdapter, funnel and servoMount have to be: they `use
+// <catchnhole>` themselves, and a nested `use` resolves relative to whichever
+// file pulls it in, so `include`-ing them from here can't find it.
 use <../cad/feeder/hopper.scad>;        // provides hopper()
 use <../cad/feeder/shaftAdapter.scad>;  // provides shaftAdapter()
+use <../cad/feeder/funnel.scad>;        // provides funnel()
+use <../cad/cabinet/servoMount.scad>;   // provides servoMount()
+use <../cad/cabinetFlat/sidePanel.scad>; // provides sidePanel(), lead_hole_2d()
 
-// The other three have no nested `use`, so they can be pulled straight in.
+// The other two have no nested `use`, so they can be pulled straight in.
 // If you ever add a `use <...>` to one of them it'll break here, and will need
-// the same module wrapper that hopper/shaftAdapter have.
+// the same module wrapper as the ones above.
 module part_singulator() { include <../cad/feeder/singulator.scad>; }
-module part_funnel()     { include <../cad/feeder/funnel.scad>; }
 module part_hornMount()  { include <../cad/feeder/hornMount.scad>; }
 
 // Takes children drawn in hopper.scad's own frame and puts them in the world:
 // lean back, slide the bore exit onto the origin, then spin about the drop axis.
 module in_feeder_frame() {
-    rotate([0, 0, FEEDER_SPIN])
+    rotate([0, 0, feederSpin])
      translate([0, -exitTiltY, -exitTiltZ])
       rotate([mountAngle, 0, 0])
         children();
@@ -195,34 +142,6 @@ module mock_leads() {
     }
 }
 
-// The lead pass-through: a slotted hole, grown by d.
-module lead_hole_2d(d = 0) {
-    hull() for (s = [1, -1])
-        translate([s * leadGap/2, 0]) circle(d = coilTube + 2 + 2*d, $fn = 48);
-}
-
-// Flat side panel of the cabinet, outer face at y = clDist.
-module mock_cabinet_wall() {
-    bot = armBotZ - cabinetBelow;
-    difference() {
-        translate([-cabinetLeft, clDist, bot])
-            cube([cabinetLeft + cabinetRight, cabinetWallThk, funnelRimZ + cabinetAbove - bot]);
-
-        // slot the horn arm swings through
-        translate([-armSlotW/2, clDist - 1, armBotZ - armSlotClear])
-            cube([armSlotW, cabinetWallThk + 2, supportThickness + 2*armSlotClear]);
-
-        // lead pass-through, sized for the grommet
-        translate([0, clDist - 1, leadZ]) rotate([-90, 0, 0])
-            linear_extrude(cabinetWallThk + 2) lead_hole_2d(grommetLip);
-
-        // screws into the end of the funnel arm
-        for (i = [1 : funnelMountHoleCount])
-            translate([0, clDist - 1, funnelZ + funnelHeight * i / (funnelMountHoleCount + 1)])
-                rotate([-90, 0, 0]) cylinder(d = 4.5, h = cabinetWallThk + 2, $fn = 24);
-    }
-}
-
 // Rubber grommet in the lead hole, lipped on both faces of the wall.
 module mock_grommet() {
     translate([0, clDist - 1.5, leadZ]) rotate([-90, 0, 0])
@@ -234,19 +153,14 @@ module mock_grommet() {
                 difference() { lead_hole_2d(2 * grommetLip); lead_hole_2d(0); }
 }
 
-// Spacer from the hopper's side to the wall, in the hopper's own frame, where
-// the side is the plane x = hopperWidth/2 and the wall's outer face is
-// x = clDist. It runs from bracketFromY up to the top of the hopper.
-module mock_bracket() {
-    topY = hopperHeight + hopperYshift;
-    translate([hopperWidth/2, bracketFromY, 0])
-        cube([clDist - hopperWidth/2, topY - bracketFromY, bracketH]);
-}
-
 // MG90S, output shaft on the origin pointing up, top of the case at z = 0.
+// End-on to the wall: the short end is toward -Y, the case runs off along +Y.
 module mock_servo() {
-    translate([-6.1, -6.1, -22.7]) cube([22.8, 12.2, 22.7]);           // case
-    translate([-10.8, -6.1, -6.5]) cube([32.2, 12.2, 2.5]);            // mounting ears
+    translate([-servoBodyW/2, -servoShaftToEnd, -servoBodyH])
+        cube([servoBodyW, servoBodyL, servoBodyH]);                    // case
+    translate([-servoBodyW/2, servoBodyL/2 - servoShaftToEnd - servoEarSpan/2,
+               -servoEarDrop - servoEarThk])
+        cube([servoBodyW, servoEarSpan, servoEarThk]);                 // mounting ears
     cylinder(d = 11.8, h = 1.5, $fn = 48);                            // top boss
     cylinder(d = 4.8,  h = 4,   $fn = 24);                            // spline
 }
@@ -307,15 +221,11 @@ in_feeder_frame() {
                 translate([0, singulatorDiameter/2 - caseCutout/2, baseThickness])
                     mock_case();
         }
-
-        if (showBracket) {
-            color("DarkOrange") mock_bracket();
-        }
   }
 
 // Everything below hangs on the drop axis
 if (showFunnel)
-    color("LightSteelBlue", funnelAlpha) translate([0, 0, funnelZ]) part_funnel();
+    color("LightSteelBlue", funnelAlpha) translate([0, 0, funnelZ]) funnel();
 
 if (showCoil)
     color("Peru") translate([0, 0, coilZ]) mock_coil();
@@ -325,8 +235,9 @@ if (showCases)
 
 if (showArm) {
     color("SeaGreen") translate([0, servoY, armBotZ]) rotate([0, 0, -90]) part_hornMount();
-    // servo sits inside the cabinet, horn flat under the arm
-    color("MidnightBlue") translate([0, servoY, armBotZ - 2]) mock_servo();
+    // servo sits inside the cabinet, end-on to the wall, horn flat under the arm
+    color("MidnightBlue") translate([0, servoY, servoTopZ]) mock_servo();
+    color("Orchid") translate([0, servoY, servoMountTopZ]) servoMount();
 }
 
 mock_thumbscrew();
@@ -335,6 +246,10 @@ if (showCoil)
     color("Peru") mock_leads();
 
 if (showCabinet) {
-    color([0.62, 0.65, 0.70], cabinetAlpha) mock_cabinet_wall();
+    // the panel is drawn flat in its own file; stand it up with its outer face
+    // on y = clDist. A right-hand build is the same sheet turned over.
+    color([0.62, 0.65, 0.70], cabinetAlpha)
+        mirror([hand < 0 ? 1 : 0, 0, 0])
+            translate([0, clDist + cabinetWallThk, 0]) rotate([90, 0, 0]) sidePanel();
     color([0.1, 0.1, 0.1]) mock_grommet();
 }

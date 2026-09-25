@@ -6,17 +6,22 @@ chordLength = singulatorDiameter * sin (singulatorExposureAngle/2);
 angleX = (hopperWidth-chordLength)/2;
 angleY = angleX/tan(hopperConvergeAngle);
 
-// hopper outline
-p0 = [0, angleY];
-p1 = [0, hopperHeight];
-p2 = [hopperWidth, hopperHeight];
-p3 = [hopperWidth, angleY];
-p4 = [(hopperWidth-angleX), 0];
-p5 = [angleX, 0];
-hopperPoints = [p0, p1, p2, p3, p4, p5];
-
 hopperXshift=-hopperWidth/2;
 hopperYshift=0.35*singulatorDiameter;
+
+// hopper outline
+p0 = [0+hopperXshift, angleY+hopperYshift];
+p1 = [0+hopperXshift, hopperHeight+hopperYshift];
+p1e = [-clDist, hopperHeight+hopperYshift];
+p1ex = [-clDist, 0];
+p2 = [hopperWidth+hopperXshift, hopperHeight+hopperYshift];
+p2e = [clDist, hopperHeight+hopperYshift];
+p2ex = [clDist, 0];
+p3 = [hopperWidth+hopperXshift, angleY+hopperYshift];
+p4 = [(hopperWidth-angleX)+hopperXshift, hopperYshift];
+p5 = [angleX+hopperXshift, hopperYshift];
+hopperPoints = [p0, p1, p2, p3, p4, p5];
+
 
 // Wrapped as a module so assembly/assembly.scad can place it.
 // Opening this file on its own still renders the part, and the STL
@@ -27,15 +32,25 @@ difference(){
         difference(){
             //main hopper body
             union(){
-                translate([hopperXshift, hopperYshift])
+                //translate([hopperXshift, hopperYshift])
                     linear_extrude(height=hopperDepth)
                         polygon(hopperPoints);
                 //singulator retaining wall
                 cylinder(h=(hopperDepth*2/3), d=(singulatorDiameter+(2*wallThickness)+3));
+                linear_extrude(height=(hopperDepth*2/3))
+                    polygon([p1e,p1ex, p2ex,p2e]);
+                //blend the side flats into the retaining wall: hulling the circle
+                //with the flats' bottom corners gives a line from each corner
+                //tangent to the circle
+                linear_extrude(height=(hopperDepth*2/3))
+                    hull(){
+                        circle(d=(singulatorDiameter+(2*wallThickness)+3));
+                        polygon([p1ex, p2ex, [0, hopperYshift]]);
+                    }
             }
             
             //shell of the hopper
-            translate([hopperXshift, hopperYshift, baseThickness])
+            translate([0, 0, baseThickness])
                 linear_extrude(height=(hopperHeight-baseThickness))
                     offset(r=-(wallThickness))
                         polygon(hopperPoints);
@@ -49,10 +64,6 @@ difference(){
                 cube([(hopperWidth-(2*wallThickness)), (wallThickness+2), (hopperDepth-baseThickness+1)]);
         }
     }
-
-    //motor stuff
-    motorPlateWidth = 70;
-    motorPoints = [[angleX, 0], [(hopperWidth-angleX), 0], [(hopperWidth-angleX), -motorPlateWidth], [angleX, -motorPlateWidth]];
     
     //motor center clearance hole
     translate([0, 0, -1])
@@ -63,7 +74,7 @@ difference(){
         for(x=[0:1]){
             for(y=[0:1]){
                 translate([x*motorHolePatternX, y*motorHolePatternY, 0])
-                    bolt("M3", baseThickness, kind = "socket_head", countersink = 1.33);
+                    bolt("M3", length=baseThickness, kind = "socket_head", countersink = 1.33);
             }
         }
     
@@ -72,6 +83,19 @@ difference(){
         rotate([-mountAngle,0,0])
             translate([0,-dropHoleSize/4,-dropHoleSize])
                 cylinder(h=dropHoleSize*2, d=dropHoleSize);
+                
+    //mounting nut interface, on both sides (mirror([0,0,0]) is a no-op)
+    mountBoltZ = (hopperDepth*2/3)/2;
+    for (side = [0, 1]) mirror([side, 0, 0])
+        for (y = [10, angleY+hopperYshift-10]) {
+            translate([clDist-wallThickness, y, mountBoltZ])
+                rotate([0,-90,0])
+                    nutcatch_sidecut("M5", "hexagon", height_clearance=0.2, width_clearance=0.2);
+            translate([clDist, y, mountBoltZ])
+                rotate([0,-90,0])
+                    bolt("M5", length=(wallThickness+nut_height("M5")+5), kind="headless", length_clearance=1);
+        }
+    
 }
 }
 
