@@ -1,5 +1,9 @@
 $fn=180;
 
+//hardware
+m3InsertD           = 4.0;  //M3 heat-set insert hole -- check your insert's datasheet
+m3InsertDepth       = 6.2;  //for a 5.7 mm long insert, plus a little for melt-back
+
 //shaftAdapter
 adapterDia      = 20;
 pinLatOffset    = 6;

@@ -35,11 +35,10 @@ difference(){
     }
     
     //set screw
-    insertHoleSize=4;
     translate([0,0,flatLength/2])
         rotate([-90,0,0])
             union(){
-                cylinder(h=(adapterDia/2)+1,d=insertHoleSize);
+                cylinder(h=(adapterDia/2)+1,d=m3InsertD);
                 translate([0,0,(adapterDia/2)-4])
                     cylinder(h=4,d=6);
             }
