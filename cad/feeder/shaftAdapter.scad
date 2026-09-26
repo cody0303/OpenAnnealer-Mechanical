@@ -1,4 +1,4 @@
-include <sharedDims.scad>
+include <../sharedDims.scad>
 use <../../catchnhole/catchnhole.scad>;
 shaftSquareBool=false;
 

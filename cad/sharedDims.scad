@@ -6,6 +6,8 @@ printBed            = 200;
 //hardware
 m3InsertD           = 4.0;  //M3 heat-set insert hole -- check your insert's datasheet
 m3InsertDepth       = 6.2;  //for a 5.7 mm long insert, plus a little for melt-back
+m4InsertD           = 5.0;
+m4InsertDepth       = 8.0;
 
 //shaftAdapter
 adapterDia      = 20;
@@ -67,10 +69,21 @@ servoBackset        = cabinetWallThk + (servoEarSpan/2 - (servoBodyL/2 - servoSh
 //stack spacing down the drop axis
 dropToFunnelRim     = 18;   //discharge exit down to the funnel's top rim
 funnelToCoil        = 15;   //funnel exit down to the centre of the coil
-funnelToCase        = 50;   //funnel exit down to the case base / thumbscrew top
-caseToArm           = 16;   //case base down to the top face of the horn arm
+maxCaseLen          = 69.2; //the longest case it takes (.338 Lapua Mag); shorter ones ride up the thumbscrew
+funnelToCase        = maxCaseLen + 7;   //funnel exit down to the thumbscrew head at its lowest: the longest
+                                        //case, with its mouth clear of the funnel
+caseToArm           = 16;   //thumbscrew head at its lowest down to the top face of the horn arm
+
+//induction heater heatsinks -- the pair on the heatsink holder, inside the cabinet; the coil's
+//leads come through the wall and plug into them, and the transformer's cables leave the far end
+heatsinkSpacing     = 20;   //between their flat faces: the holder's width across them
+heatsinkH           = 54;   //overall, across the fins
+heatsinkFinReach    = 5.25; //the fins stand this far proud of the flat face, toward the holder
+heatsinkDepth       = 18.5; //flat face out to the back of the curved base
+heatsinkLen         = 38;   //extrusion length, the same as the holder
+heatsinkBoreIn      = 7;    //the coil's lead plugs in this far in from the flat face, at mid-height
 
 //induction coil leads, where they pass through the cabinet wall
 coilTube            = 4;    //copper tube OD
-leadGap             = 12;   //centre-to-centre of the two leads
+leadGap             = heatsinkSpacing + 2*heatsinkBoreIn;   //centre-to-centre: the heatsinks' lead bores
 grommetLip          = 2.5;  //the pass-through is grown by this for the grommet

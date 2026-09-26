@@ -1,4 +1,4 @@
-include <../feeder/sharedDims.scad>
+include <../sharedDims.scad>
 
 // Tilted housing for the BIGTREETECH Mini12864 V2.0 display, on the outside
 // of a cabinet wall. The display face tips back by screenTilt so it looks up

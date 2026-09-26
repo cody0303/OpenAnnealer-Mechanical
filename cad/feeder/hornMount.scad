@@ -24,7 +24,7 @@
 //
 // armCount: 1 = single, 2 = straight/double, 4 = cross/star.
 
-include <sharedDims.scad>
+include <../sharedDims.scad>
 
 /* [Stock horn -- MEASURE YOURS] */
 armCount  = 2;

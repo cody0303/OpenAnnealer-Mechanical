@@ -30,7 +30,8 @@ panelTile      = "tiles";   // [tiles, whole, upper, lower]
 // Defaults are the smallest panel that still carries everything. The hopper
 // overhangs the top edge, which sits just above its upper bolt.
 panelFeederSide = 100;  // past the drop axis on the feeder's side -- meets the hopper face at the top edge
-panelFarSide    = 32;   // past the drop axis on the other side -- leaves a solid strip beside the arm slot
+panelFarSide    = 56;   // past the drop axis on the other side -- puts the cabinet's corner post clear of
+                        // the servo mount (x +/-24.4), the arm slot and the heatsinks (x +/-28.5)
 panelTop        = 100;  // above the discharge exit
 panelBelowArm   = 76.2; // clear panel below the horn arm's underside (3 in)
 panelCornerR    = 3;    // outside corners
@@ -43,16 +44,24 @@ seamScrewD   = 3.4;     // M3 clearance, into heat-set inserts in the belt rail
 seamScrewOff = 8;       // seam screws, above and below the split line
 
 // Split line for printing: halfway between the top of the arm slot and the
-// bottom of the grommet hole.
+// bottom of the grommet hole, but raised if need be to keep the upper tile
+// on the bed.
 function panelSplitZ() =
-    ((armTopZ + armSlotClear) + (leadZ - ((coilTube + 2)/2 + grommetLip))) / 2;
+    max(((armTopZ + armSlotClear) + (leadZ - ((coilTube + 2)/2 + grommetLip))) / 2,
+        panelTop - (printBed - 10));
 
-// The lead pass-through: a slotted hole, grown by d. The assembly uses it for
-// the grommet too.
+// The lead pass-throughs, one per lead, grown by d. The assembly uses them for
+// the grommets too.
 module lead_hole_2d(d = 0) {
-    hull() for (s = [1, -1])
+    for (s = [1, -1])
         translate([s * leadGap/2, 0]) circle(d = coilTube + 2 + 2*d);
 }
+
+// Seam screws across the panel: one near each edge, and one between the
+// feeder-side edge and the heatsinks, which notch the belt rail behind the
+// middle of the wall.
+heatsinkNotchX = heatsinkSpacing/2 + heatsinkDepth + 1;
+seamScrewXs = [-panelFeederSide + 15, (-panelFeederSide + 15 - heatsinkNotchX)/2, panelFarSide - 15];
 
 // Every edge of the panel as a list of simple features, all in mm in the
 // panel's own frame. The first is the outline; the rest are cut out of it.
@@ -69,8 +78,10 @@ function panelFeatures() =
         [["rrect", -panelFeederSide, bot, panelFeederSide + panelFarSide, panelTop - bot, panelCornerR]],
         //slot the horn arm swings through
         [["rect", -armSlotW/2, armBotZ - armSlotClear, armSlotW, supportThickness + 2*armSlotClear]],
-        //coil leads, sized for the grommet
-        [["slot", 0, leadZ, leadGap/2, (coilTube + 2)/2 + grommetLip]],
+        //coil leads, one hole each, sized for the grommets
+        [for (s = [1, -1]) ["circle", s * leadGap/2, leadZ, coilTube + 2 + 2*grommetLip]],
+        //M5 clearance: the heatsink holder's bottom bolt, inside (its top one is the funnel's upper bolt)
+        [["circle", 0, leadZ - holderBoltOff, boltClearD]],
         //M5 clearance: end of the funnel arm
         [for (z = funnelBoltZs) ["circle", 0, funnelZ + z, boltClearD]],
         //M5 clearance: hopper side block, where its bolts land on the wall
@@ -80,8 +91,7 @@ function panelFeatures() =
         [for (x = [-servoMountBoltX, servoMountBoltX])
             ["circle", x, servoMountTopZ - servoMountH/2, boltClearD]],
         //M3 clearance: into the belt rail, either side of the split line
-        [for (i = [0 : 2], s = [-1, 1])
-            let (x = -panelFeederSide + 15 + i*(panelFeederSide + panelFarSide - 30)/2)
+        [for (x = seamScrewXs, s = [-1, 1])
             ["circle", x, panelSplitZ() + s*seamScrewOff, seamScrewD]]
     );
 

@@ -1,4 +1,4 @@
-include <sharedDims.scad>
+include <../sharedDims.scad>
 
 //embossed text
 difference(){

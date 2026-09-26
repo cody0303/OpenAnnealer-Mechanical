@@ -1,4 +1,4 @@
-include <sharedDims.scad>
+include <../sharedDims.scad>
 use <../../catchnhole/catchnhole.scad>;
 
 //calcualte the triangle cutout based on the feed angle and singulator diameter

@@ -1,4 +1,4 @@
-include <sharedDims.scad>
+include <../sharedDims.scad>
 
 // Where everything sits in the machine, derived from sharedDims. Shared by
 // cad/cabinetFlat/sidePanel.scad (which needs to know where to put its holes),
@@ -58,10 +58,15 @@ function feederToWorld(p) =
 funnelRimZ = -dropToFunnelRim;
 funnelZ    = funnelRimZ - funnelHeight;     // funnel's local origin is its exit
 coilZ      = funnelZ - funnelToCoil;
-caseBaseZ  = funnelZ - funnelToCase;
+caseBaseZ  = funnelZ - funnelToCase;       // thumbscrew head at its lowest, for the longest case
 armTopZ    = caseBaseZ - caseToArm;
 armBotZ    = armTopZ - supportThickness;
 leadZ      = coilZ;                         // height the coil leads pass the wall at
+
+// The heatsink holder stands inside the wall between the leads, centred on
+// them. Its top bolt is the funnel's upper one, shared; its bottom one sits
+// the same distance below the leads.
+holderBoltOff = funnelZ + funnelBoltZs[1] - leadZ;
 
 servoY         = clDist + servoBackset;     // funnel arm to the wall, then the backset
 servoTopZ      = armBotZ - 2;               // horn sits flat under the arm

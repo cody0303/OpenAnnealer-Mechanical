@@ -42,15 +42,17 @@ thumbHeadH = 7;
 nutAcross  = 9.2;
 nutH       = 4;
 
-/* [Mock case -- .223 Rem] */
-caseLen      = 44.7;
-caseBodyD    = 9.5;
-caseNeckD    = 6.4;
-caseShoulder = 32;
-caseNeck     = 38;
+/* [Mock case -- .338 Lapua Mag, the longest it takes] */
+// Approximate. The thumbscrew is raised to put the shoulder/neck junction in
+// the middle of the coil. .223 Rem: 44.7, 9.5, 6.4, 32, 38
+caseLen      = 69.2;
+caseBodyD    = 14.9;
+caseNeckD    = 9.5;
+caseShoulder = 54.9;    // base to the body/shoulder junction
+caseNeck     = 60.9;    // base to the shoulder/neck junction
 
 /* [Coil leads mock] */
-leadIntoCabinet = 40;   // how far the leads run on past the wall's inner face
+leadIntoCabinet = 15;   // how far the leads run on past the wall's inner face, into the heatsinks
 
 /* [Cabinet box -- concept, not parts yet] */
 /* Flat faces (ply or print, cabinetWallThk thick) on four printed corner
@@ -66,23 +68,24 @@ beltH         = 20;     // belt rail round the inside at the tile seam: height..
 beltT         = 8;      // ...and depth off the wall
 
 /* [Heater + electronics mocks -- CONFIRM sizes] */
-/* The coil entry, transformer and driver board stay in a chain, each within
-   about an inch of the next. The transformer's front end sits just behind the
-   lead entry; it runs diagonally down along the inside of the front wall, over
-   the servo stack, to the driver board lying flat on the floor with its output
-   end at the front -- weight low. The board's fan moves to the back wall just
-   above the board's end, so the box stays one printer bed deep. Pose the
-   transformer with the xfmr* settings; checkTransformer shows any clash.
-   The low-voltage supply is left out for now.
+/* The coil, heatsinks, transformer and driver board stay in a short chain.
+   The coil's leads come through the wall into the heatsinks on the holder;
+   the transformer's cables leave the heatsinks' inner ends and it runs
+   straight back from just behind them and down at 45 deg toward the driver
+   board, which lies flat on the floor -- weight low. The board's fan is on
+   the back wall just above the board's end, so the box stays one printer bed
+   deep. Pose the transformer with the xfmr* settings; checkTransformer shows
+   any clash. The low-voltage supply is left out for now.
 */
 driverBoard     = [185, 35, 63.5];    // long (7.25 in), thick (board + parts + heatsink bar), wide
 driverFan       = [45, 25];           // fan, now on the back wall: size and depth
+boardStandoff   = 8;                  // the board's standoffs off the floor -- under the servo mount at most
 transformerSize = [63.5, 90];         // diameter, length (3.5 in)
-xfmrDown        = 55;                 // [0:1:90] transformer axis, degrees below horizontal
-xfmrSide        = 90;                 // [0:1:90] swing from straight back (0) to along the wall (90), toward the feeder side
-xfmrSetback     = 41;                 // inside face of the front wall to the axis at its front end -- clear of the funnel bolt heads
-xfmrShiftX      = -15;                // its front end, off the drop axis (toward the feeder side is -)
-xfmrRaise       = 5;                  // its front end, above the lead height
+xfmrDown        = 45;                 // [0:1:90] transformer axis, degrees below horizontal
+xfmrSide        = 0;                  // [0:1:90] swing from straight back (0) to along the wall (90), toward the feeder side
+xfmrSetback     = 66;                 // inside face of the front wall to the axis at its front end -- clear of the heatsinks
+xfmrShiftX      = 0;                  // its front end, off the drop axis (toward the feeder side is -)
+xfmrRaise       = -20;                // its front end, above the lead height
 
 /* [Display] */
 showCases   = true;
@@ -94,6 +97,8 @@ showCabinet = true;     // the feeder side panel and the lead grommet
 showBox     = true;     // the rest of the cabinet
 showElectronics = true;
 checkTransformer = false;   // true: draw only where the transformer hits something -- nothing drawn means clear
+checkPosts       = false;   // true: draw only where the corner posts or belt hit the servo, its mount or the swinging arm
+armSwing         = 45;      // the arm's swing each way from the drop axis, for checkPosts -- the wall slot limits it
 hopperAlpha = 0.35;   // 1 = solid; lower to see the wheel and motor through it
 funnelAlpha = 1;
 cabinetAlpha = 0.35;     // lower to see the leads and servo inside
@@ -103,6 +108,9 @@ hand       = (feederSide == "right") ? -1 : 1;
 feederSpin = 90 * hand;     // turns the hopper's +/-X side square to the wall
 
 coilR = coilID/2 + coilTube/2;              // coil tube centreline radius
+// the mock case's base: shoulder/neck junction mid-coil, no lower than the
+// thumbscrew goes
+caseSeatZ = max(caseBaseZ, coilZ - caseNeck);
 
 // ---------------------------------------------------------------------------
 // The real parts, pulled straight from their own files
@@ -115,6 +123,7 @@ use <../cad/feeder/hopper.scad>;        // provides hopper()
 use <../cad/feeder/shaftAdapter.scad>;  // provides shaftAdapter()
 use <../cad/feeder/funnel.scad>;        // provides funnel()
 use <../cad/cabinet/servoMount.scad>;   // provides servoMount()
+use <../cad/cabinet/heatsinkHolder.scad>; // provides heatsinkHolder(), heatsinkHolderSize()
 use <../cad/cabinetFlat/sidePanel.scad>; // provides sidePanel(), sidePanelTile(), panelFeatures(), panelSplitZ(), lead_hole_2d()
 
 // The other two have no nested `use`, so they can be pulled straight in.
@@ -152,7 +161,7 @@ boxY1 = clDist + boxD;
 // (their legs reach postLeg in from each corner)
 boardX0 = max(boxX0 + T + postLeg + 1, min(boxX1 - T - postLeg - 1 - driverBoard[2], xfmrB[0] - driverBoard[2]/2));
 boardY0 = boxY0 + T + (boxD - 2*T - driverBoard[0]) / 2;
-boardZ0 = boxZ0 + T;
+boardZ0 = boxZ0 + T + boardStandoff;
 assert(driverBoard[0] <= boxD - 2*T, "the driver board is longer than the box is deep");
 
 // screen housing on the far end wall, centred front to back, up at eye level
@@ -216,12 +225,41 @@ module mock_leads() {
     }
 }
 
-// Rubber grommet in the lead hole, lipped on both faces of the wall.
+// The heatsink holder in place: its +X end face on the inside of the wall,
+// centred between the leads.
+module place_holder() {
+    translate([0, clDist + cabinetWallThk + heatsinkHolderSize()[0]/2, leadZ]) rotate([0, 0, -90]) children();
+}
+
+// The two heatsinks on the holder's sides: a finned body off each flat face,
+// fins curling back toward the holder above and below it. Rough -- the lead
+// bores are heatsinkBoreIn in from the flat face, at mid-height.
+module mock_heatsinks() {
+    translate([0, clDist + cabinetWallThk, leadZ]) rotate([-90, 0, 0])
+        linear_extrude(heatsinkLen)
+            for (s = [1, -1]) mirror([s < 0 ? 1 : 0, 0]) {
+                translate([heatsinkSpacing/2, -heatsinkH/2]) square([heatsinkDepth, heatsinkH]);
+                for (t = [1, -1])
+                    translate([heatsinkSpacing/2 - heatsinkFinReach, t > 0 ? 9 : -heatsinkH/2])
+                        square([heatsinkFinReach + 0.01, heatsinkH/2 - 9]);
+            }
+}
+
+// the room the holder and heatsinks take up inside the wall, grown by c
+module heatsink_block_envelope(c = 0) {
+    w = heatsinkSpacing/2 + heatsinkDepth + c;
+    h = max(heatsinkHolderSize()[2], heatsinkH)/2 + c;
+    translate([-w, clDist + cabinetWallThk - 1, leadZ - h])
+        cube([2*w, max(heatsinkHolderSize()[0], heatsinkLen) + 1 + c, 2*h]);
+}
+
+// Rubber grommet in each lead hole, lipped on the outside only -- the
+// heatsinks sit against the inside face.
 module mock_grommet() {
     translate([0, clDist - 1.5, leadZ]) rotate([-90, 0, 0])
-        linear_extrude(cabinetWallThk + 3)
+        linear_extrude(cabinetWallThk + 1.5)
             difference() { lead_hole_2d(grommetLip); lead_hole_2d(0); }
-    for (y = [clDist - 1.5, clDist + cabinetWallThk])
+    for (y = [clDist - 1.5])
         translate([0, y, leadZ]) rotate([-90, 0, 0])
             linear_extrude(1.5)
                 difference() { lead_hole_2d(2 * grommetLip); lead_hole_2d(0); }
@@ -241,13 +279,14 @@ module mock_servo() {
 
 // COTS thumbscrew, head up: the case stands on the flat top of the knurled
 // head. The shank runs down through the arm and stop nuts jam either side of
-// it to set how high the case sits in the coil.
+// it to set how high the case sits in the coil -- at its lowest (caseBaseZ)
+// for the longest case, raised for shorter ones.
 module mock_thumbscrew() {
     color("Silver") {
-        translate([0,0,caseBaseZ - thumbHeadH]) cylinder(d = thumbHeadD, h = thumbHeadH);
+        translate([0,0,caseSeatZ - thumbHeadH]) cylinder(d = thumbHeadD, h = thumbHeadH);
         translate([0,0,armBotZ - 10])
             cylinder(d = supportScrewSize,
-                     h = (caseBaseZ - thumbHeadH) - (armBotZ - 10));
+                     h = (caseSeatZ - thumbHeadH) - (armBotZ - 10));
     }
     color("DimGray") {
         translate([0,0,armTopZ])        cylinder(d = nutAcross, h = nutH, $fn = 6);
@@ -265,8 +304,8 @@ module mock_pile() {
     translate([hopperXshift, hopperYshift, baseThickness])
         for (r = [0 : 5])
             for (c = [-5 : 5]) {
-                y = crownY + 5 + r * 8.5;
-                x = hopperWidth/2 + c * 10 + (r % 2) * 5;
+                y = crownY + 5 + r * 0.87 * (caseBodyD + 0.5);
+                x = hopperWidth/2 + (c + (r % 2) / 2) * (caseBodyD + 0.5);
                 leftWall = (y < angleY) ? angleX * (1 - y/angleY) : 0;
                 if (x > leftWall + inset
                  && x < hopperWidth - leftWall - inset
@@ -307,6 +346,7 @@ module box_posts() {
             translate([boxX1 - T - beltT, boxY0 + T, 0]) cube([beltT, boxD - 2*T, beltH]);
         }
         transformer_mock(clear = 2);
+        heatsink_block_envelope(1);
     }
 }
 
@@ -365,8 +405,8 @@ module box_electronics() {
         cube([driverFan[0], driverFan[1], driverFan[0]]);
     // transformer, diagonally down along the front wall from the lead entry to the board
     color("Gold") transformer_mock();
-    // relay/SSR on the floor beside the board, behind the servo
-    color("MediumBlue") translate([boardX0 + b[2] + 2, boxY0 + boxD/2, boxZ0 + T]) cube([25, 40, 20]);
+    // relay/SSR on the floor beside the board, on the feeder side
+    color("MediumBlue") translate([boardX0 - 27, boxY0 + boxD/2, boxZ0 + T]) cube([25, 40, 20]);
     // IEC inlet
     color("Red") translate([-14, boxY1 - 1, seamZ + 30]) cube([28, 2, 40]);
 }
@@ -388,9 +428,21 @@ module transformer_obstacles() {
     translate([boxX0, boxY0, boxZ0]) cube([T, boxD, boxZ1 - boxZ0]);        // feeder-side end
     translate([boxX1 - T, boxY0, boxZ0]) cube([T, boxD, boxZ1 - boxZ0]);    // screen end
     translate([boxX0, boxY0, boxZ0]) cube([boxW, boxD, T]);                 // base
-    // funnel bolt heads on the inside of the front wall (M5, ~9 mm across, 5 mm proud)
-    for (z = funnelBoltZs) translate([0, boxY0 + T, funnelZ + z]) rotate([-90, 0, 0]) cylinder(d = 9, h = 5);
+    // the funnel's bolt heads: the lower one on the inside of the front wall, in
+    // the holder's pocket; the upper one, shared, on the holder's inner end
+    translate([0, boxY0 + T, funnelZ + funnelBoltZs[0]]) rotate([-90, 0, 0]) cylinder(d = 9, h = 5);
+    translate([0, boxY0 + T + heatsinkHolderSize()[0], funnelZ + funnelBoltZs[1]]) rotate([-90, 0, 0]) cylinder(d = 9, h = 5);
     translate([boardX0, boardY0, boardZ0]) cube([driverBoard[2], driverBoard[0], driverBoard[1]]);
+    heatsink_block_envelope(0);
+}
+
+// what the corner posts and belt must keep clear of: the servo stack and the
+// arm through its swing
+module post_obstacles() {
+    translate([0, servoY, servoMountTopZ]) servoMount();
+    translate([0, servoY, servoTopZ]) mock_servo();
+    for (t = [-armSwing : 5 : armSwing])
+        translate([0, servoY, armBotZ]) rotate([0, 0, -90 + t]) part_hornMount();
 }
 
 // ---------------------------------------------------------------------------
@@ -398,6 +450,8 @@ module transformer_obstacles() {
 // ---------------------------------------------------------------------------
 if (checkTransformer)
     color("Red") intersection() { transformer_mock(); transformer_obstacles(); }
+else if (checkPosts)
+    color("Red") intersection() { box_posts(); post_obstacles(); }
 else {
 
 in_feeder_frame() {
@@ -422,11 +476,17 @@ in_feeder_frame() {
 if (showFunnel)
     color("LightSteelBlue", funnelAlpha) translate([0, 0, funnelZ]) funnel();
 
-if (showCoil)
+if (showCoil) {
     color("Peru") translate([0, 0, coilZ]) mock_coil();
+    // heatsink holder, stood upright inside the cabinet on the feeder panel
+    // between the leads, its bolted end face on the wall, with the heatsinks
+    // the leads plug into on each side. Not mirrored for a right-hand build.
+    color("DarkOrange") place_holder() heatsinkHolder();
+    color("Silver") mock_heatsinks();
+}
 
 if (showCases)
-    color("Goldenrod") translate([0, 0, caseBaseZ]) mock_case();
+    color("Goldenrod") translate([0, 0, caseSeatZ]) mock_case();
 
 if (showArm) {
     color("SeaGreen") translate([0, servoY, armBotZ]) rotate([0, 0, -90]) part_hornMount();
