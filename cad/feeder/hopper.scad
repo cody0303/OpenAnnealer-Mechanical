@@ -51,7 +51,7 @@ difference(){
             
             //shell of the hopper
             translate([0, 0, baseThickness])
-                linear_extrude(height=(hopperHeight-baseThickness))
+                linear_extrude(height=(hopperDepth-baseThickness+1))
                     offset(r=-(wallThickness))
                         polygon(hopperPoints);
             

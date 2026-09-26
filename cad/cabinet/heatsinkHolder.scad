@@ -51,9 +51,9 @@ module mirror_copy(v = [1, 0, 0]) {
 module heatsinkHolder() {
     difference(){
         union(){
-            cube([holderLength, heatsinkSpacing, heatsinkInsideLat], center=true);
-            //the web and bosses run on to the wall
+            //the centre block, the web and the bosses all run on to the wall
             translate([wallBackset/2, 0, 0]) {
+                cube([holderLength + wallBackset, heatsinkSpacing, heatsinkInsideLat], center=true);
                 cube([holderLength + wallBackset, 8, 2*bossZ], center=true);
                 mirror_copy([0,0,1])
                     translate([0,0,bossZ])
