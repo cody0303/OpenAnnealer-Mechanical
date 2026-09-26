@@ -33,7 +33,7 @@ openscad --enable=import-function -o singulator.stl cad/feeder/singulator.scad
   sharedDims; the left panel drills its holes from it.
 - [`cabinet/boxLayout.scad`](cabinet/boxLayout.scad) — the cabinet box, what's inside it, and
   every face's cut-outs. Front is the screen end, back is where the USB ports come out, left is the
-  panel the feeder mounts on, right is the wall with the IEC inlet.
+  panel the feeder mounts on, right is the wall across from it.
 - [`feeder/`](feeder) — the feed subsystem, outside the cabinet.
 - [`cabinet/`](cabinet) — printed parts inside the cabinet, plus `flatPanel.scad` (the flat-face
   helpers) and `boxLayout.scad`, which aren't parts.

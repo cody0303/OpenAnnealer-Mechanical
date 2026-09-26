@@ -5,7 +5,7 @@
 // Names, standing at the screen looking at the machine: front is the screen
 // end (+X), back is where the Pico board's USB ports come out (-X), left is
 // the feeder panel the hopper and the chain of action mount on (-Y, the side
-// panel), right is the wall across from it (+Y), with the IEC inlet. All in
+// panel), right is the wall across from it (+Y). All in
 // left-hand-build coordinates (feeder on the left of the drop axis, seen from
 // outside the left panel); a right-hand build is the mirror image.
 //
@@ -61,9 +61,10 @@ picoLift     = 8.5;     // ASSUMED: the Pico 2 W on female headers -- board face
 picoStandoff = 10;      // M3 standoffs off the panel
 usbCut       = [15, 10];// back-wall cut-out round each port: room for a cable's plug
 
-/* [Right wall] */
-iecCut       = [28, 40];// IEC inlet cut-out -- PLACEHOLDER until the inlet's chosen
-iecAboveSeam = 30;      // its bottom, above the tile seam
+/* [IEC inlet -- back wall] */
+iecCut       = [47, 27.5];  // its panel cut-out, along the wall and up
+iecLeftClear = 15;          // the left panel's inside face to the cut-out: room for the inlet's mounting screws
+iecDepth     = 35;          // ASSUMED: how far its body and terminals reach in behind the wall
 
 /* [Faces] */
 lapBoltD = 3.4;         // M3 clearance: the tiles' lap bolts, and screws into the corner blocks
@@ -147,6 +148,19 @@ module on_fan_duct() {
 relaySize = [25, 40, 20];
 relayAt   = [boxX0 + T + 2, boxY0 + T + cornerBlock + 2, boxZ0 + T];
 assert(!boxLayoutReady || relayAt[0] + relaySize[0] + 1 <= boardX0, "the relay runs into the driver board");
+
+// the IEC inlet, low on the back wall at the left end, just above the relay --
+// clear of the cradle's back legs, which rule out the floor beside it -- and
+// iecLeftClear off the left panel for its mounting screws. Its body reaches in
+// iecDepth behind the wall, behind the driver board
+iecY0 = boxY0 + T + iecLeftClear;               // its cut-out's left edge
+iecZ0 = relayAt[2] + relaySize[2] + 1;          // ...and bottom edge
+assert(!boxLayoutReady || boxX0 + T + iecDepth + 1 <= boardX0, "the IEC inlet runs into the driver board");
+assert(!boxLayoutReady || iecY0 + iecCut[0] <= boxY1 - T - cornerBlock, "the IEC inlet runs past the back wall's corner blocks");
+module iec_mock() {
+    translate([boxX0 + T, iecY0, iecZ0]) cube([iecDepth, iecCut[0], iecCut[1]]);                  // body, inside
+    translate([boxX0 - 3, iecY0 - 1.5, iecZ0 - 1.5]) cube([3, iecCut[0] + 3, iecCut[1] + 3]);    // flange, outside
+}
 
 // ---------------------------------------------------------------------------
 // The Pico motor board, on the left panel
@@ -236,6 +250,8 @@ function backFeatures() = concat(
     //the Pico board's two USB ports (the plug's wide side up and down)
     [for (p = pbPorts) let (c = pbToWorld([p[0], 0, p[1]]))
         ["rect", -c[1] - usbCut[1]/2, c[2] - usbCut[0]/2, usbCut[1], usbCut[0]]],
+    //the IEC inlet, low at the left end
+    [["rect", -(iecY0 + iecCut[0]), iecZ0, iecCut[0], iecCut[1]]],
     cornerScrews([for (y = cbMid(cbY)) -y], cbMid(cbZ)));
 
 // the fan's intake grille and the duct's screws, in the duct's frame: slots
@@ -255,8 +271,6 @@ function rightFeatures() = concat(
     //board's back edge forward to the front corner block
     let (x0 = boardX0, x1 = boxX1 - T - cornerBlock - 4)
         [for (z = [0 : 7 : 21]) ["rect", -x1, boxZ0 + T + 8 + z, x1 - x0, 4]],
-    //the IEC inlet, above the seam in the middle
-    [["rect", -iecCut[0]/2, seamZ + iecAboveSeam, iecCut[0], iecCut[1]]],
     cornerScrews([for (x = cbMid(cbX)) -x], cbMid(cbZ)));
 
 function lidFeatures() = concat(

@@ -6,8 +6,8 @@ use <../cabinet/transformerCradle.scad>
 use <../cabinet/flatPanel.scad>
 
 // The cabinet's back wall: the Pico motor board's two USB ports come out
-// through it, and it screws into the corner blocks. Split for printing at
-// the tile seam, like the left panel.
+// through it, the IEC inlet sits low at its left end, and it screws into the
+// corner blocks. Split for printing at the tile seam, like the left panel.
 //
 // Drawn flat, as seen from outside the cabinet (boxLayout.scad has the
 // frame). Everything about where its holes go is in boxLayout.scad, shared

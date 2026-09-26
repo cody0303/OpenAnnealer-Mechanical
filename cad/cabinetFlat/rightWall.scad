@@ -6,8 +6,7 @@ use <../cabinet/transformerCradle.scad>
 use <../cabinet/flatPanel.scad>
 
 // The cabinet's right wall: the exhaust vents, low, where the driver fan's air
-// leaves the board's heatsink, the IEC inlet (placeholder), and screws into
-// the corner blocks.
+// leaves the board's heatsink, and screws into the corner blocks.
 // Split for printing at the tile seam, like the left panel.
 //
 // Drawn flat, as seen from outside the cabinet (boxLayout.scad has the

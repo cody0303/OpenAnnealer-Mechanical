@@ -332,7 +332,7 @@ module box_electronics() {
     // relay/SSR on the floor behind the board, at the left end
     color("MediumBlue") translate(relayAt) cube(relaySize);
     // IEC inlet
-    color("Red") translate([-14, boxY1 - 1, seamZ + 30]) cube([28, 2, 40]);
+    color("Red") iec_mock();
 }
 
 // catch bin under the stack, on its own printed tray in front of the box
@@ -363,6 +363,7 @@ module transformer_obstacles() {
     place_holder() heatsinkHolder();
     mock_heatsinks();
     on_fan_duct() { fanAdapter(); on_seat() translate([-driverFanSize/2, -driverFanSize/2, fanAdapterSeatT()]) cube([driverFanSize, driverFanSize, driverFanDepth]); }
+    iec_mock();
 }
 
 // what the corner blocks must keep clear of: the servo stack and the arm

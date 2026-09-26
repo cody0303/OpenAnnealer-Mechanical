@@ -31,8 +31,8 @@ two tiles joined by a half-lap, glued and bolted. The release has each tile as i
 |---|---|---|
 | Left panel | `cad/cabinetFlat/sidePanel.scad` | The feeder stack, heatsink holder, servo mount and Pico board bolt to it |
 | Front wall | `cad/cabinetFlat/frontWall.scad` | Screen housing, fan intake grille |
-| Back wall | `cad/cabinetFlat/backWall.scad` | Pico board's USB-C ports |
-| Right wall | `cad/cabinetFlat/rightWall.scad` | Exhaust vents, IEC inlet (cut-out is a placeholder) |
+| Back wall | `cad/cabinetFlat/backWall.scad` | Pico board's USB-C ports, IEC inlet |
+| Right wall | `cad/cabinetFlat/rightWall.scad` | Exhaust vents |
 | Lid | `cad/cabinetFlat/lid.scad` | Nothing mounted to it, for servicing |
 | Base | `cad/cabinetFlat/base.scad` | Transformer cradle screws up into it |
 
@@ -77,7 +77,7 @@ Each wall file has `feederSide`; a right-hand build exports its faces with `"rig
 | NEMA 17 stepper | 1 | Feeder wheel |
 | MG90S servo | 1 | Swing arm |
 | Pico motor expansion board + Pico 2 W | 1 | eamars/RaspberryPi-Pico-Motor-Expansion-Board |
-| IEC inlet with switch | 1 | Model TBD; the right wall's cut-out is a placeholder |
+| IEC inlet with switch | 1 | 47 × 27.5 mm panel cut-out, low on the back wall above the relay; up to ~35 mm deep behind the wall |
 | Double-sided mounting tape | — | Driver board and relay |
 
 The coil, its heatsinks, the transformer and the driver board are harvested from an induction
