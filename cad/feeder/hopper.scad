@@ -84,14 +84,19 @@ difference(){
             translate([0,-dropHoleSize/4,-dropHoleSize])
                 cylinder(h=dropHoleSize*2, d=dropHoleSize);
                 
-    //mounting nut interface, on both sides (mirror([0,0,0]) is a no-op)
-    mountBoltZ = (hopperDepth*2/3)/2;
+    //mounting nut interface, on both sides (mirror([0,0,0]) is a no-op). The two bolts are
+    //staggered across the side block, each nut fed in from its nearer face: the one near the
+    //drop from the top, the far one from the base, which keeps the far one (the highest,
+    //once the hopper leans back) low -- [y, z, which face the slot opens to]
+    sideH = hopperDepth*2/3;
+    mountBolts = [[10, sideH/2 + 10, 1], [angleY+hopperYshift-10, sideH/2 - 10, -1]];
     for (side = [0, 1]) mirror([side, 0, 0])
-        for (y = [10, angleY+hopperYshift-10]) {
-            translate([clDist-wallThickness, y, mountBoltZ])
-                rotate([0,-90,0])
-                    nutcatch_sidecut("M5", "hexagon", height_clearance=0.2, width_clearance=0.2);
-            translate([clDist, y, mountBoltZ])
+        for (b = mountBolts) {
+            translate([clDist-wallThickness, b[0], b[1]])
+                mirror([0, 0, b[2] < 0 ? 1 : 0])
+                    rotate([0,-90,0])
+                        nutcatch_sidecut("M5", "hexagon", height_clearance=0.2, width_clearance=0.2);
+            translate([clDist, b[0], b[1]])
                 rotate([0,-90,0])
                     bolt("M5", length=(wallThickness+nut_height("M5")+5), kind="headless", length_clearance=1);
         }

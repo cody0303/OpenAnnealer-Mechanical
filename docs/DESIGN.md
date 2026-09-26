@@ -86,7 +86,7 @@ commands per case").
 ### Hopper + singulator wheel
 
 Modelled on ARC Precision / ADG's annealer. **CAD**: [`cad/feeder/`](../cad/feeder) — hand-written,
-with every dimension in [`sharedDims.scad`](../cad/feeder/sharedDims.scad).
+with every dimension in [`sharedDims.scad`](../cad/sharedDims.scad).
 
 - **Hopper**: a flat-backed pan leaning back ~45°, open at the top for loading. Cases are dumped in
   loose and stand base-down on the pan's base plate, fully contained (52mm of wall depth against a
@@ -244,6 +244,6 @@ See [`assembly/BOM.md`](../assembly/BOM.md).
    minimum swing angle (formula above) against its actual OD.
 4. Decide the second motor before modelling a mount for it — and confirm the feeder motor's actual
    shaft diameter and flat depth against `shaftDia`/`shaftDwidth` in
-   [`cad/feeder/sharedDims.scad`](../cad/feeder/sharedDims.scad).
+   [`cad/sharedDims.scad`](../cad/sharedDims.scad).
 5. Model the holder swing arm, shelf, insert cup, coil mount bracket, and drop chute — not started
    yet; the feeder subsystem above was the starting point.

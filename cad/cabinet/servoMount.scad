@@ -20,6 +20,10 @@ bodyCenterY = servoBodyL/2 - servoShaftToEnd;           //case centre, from the 
 mountFarY   = bodyCenterY + servoEarSpan/2 + 3;         //just past the far ear's tip
 mountBoltX  = servoMountBoltX;
 mountHalfW  = mountBoltX + wallThickness + 4;
+//the servo's cable leaves the case at its wall-side end, low down: a notch through
+//the mount's end there, open at the bottom, lets it bend straight down against the wall
+cableNotchW = 6;
+cableNotchH = 8;                                        //up from the case bottom
 
 assert(bodyCenterY - servoEarSpan/2 > mountWallY,
        "the servo's wall-side ear hits the cabinet wall -- increase servoBackset");
@@ -34,6 +38,10 @@ module servoMount() {
         //pocket the case drops through
         translate([-(servoBodyW/2+servoClear), -(servoShaftToEnd+servoClear), -mountH-1])
             cube([servoBodyW+2*servoClear, servoBodyL+2*servoClear, mountH+2]);
+
+        //notch for the servo's cable, at the wall-side end
+        translate([-cableNotchW/2, mountWallY - 1, -mountH - 1])
+            cube([cableNotchW, -(servoShaftToEnd + servoClear) - mountWallY + 2, cableNotchH + 1]);
 
         //pilots for the ear screws
         for (y = [bodyCenterY-servoEarHolePitch/2, bodyCenterY+servoEarHolePitch/2])

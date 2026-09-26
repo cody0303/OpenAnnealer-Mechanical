@@ -1,6 +1,8 @@
 include <../feeder/layout.scad>
+use <../cabinet/flatPanel.scad>         // feature_2d(), features_2d(), flat_part(), flat_tile()
 
-// Cabinet side panel -- the sheet the whole feeder stack bolts to: the
+// The cabinet's left panel (its side panel) -- the sheet the whole feeder
+// stack bolts to: the
 // hopper's side block, the end of the funnel arm and the servo mount, with a
 // slot for the horn arm to swing through and a grommeted pass-through for the
 // coil leads.
@@ -21,18 +23,19 @@ include <../feeder/layout.scad>
 exportDXF      = false; // true: output the 2D face only (preview; see above)
 echoFeatures   = false; // true: echo panelFeatures() for tools/export_panel_dxf.py
 // The panel is taller than a printer bed, so the STL comes as two tiles, split
-// across the one band nothing crosses (between the arm slot and the lead
-// grommet). They're joined by the cabinet's belt rail, which runs round the
-// inside at that height. Cut from sheet, it stays one piece: the DXF is whole.
+// across a band nothing crosses. They meet in a half-lap -- the upper tile's
+// outer half over the lower tile's inner half -- glued, and bolted through
+// with M3 button heads from outside and nuts inside; the seam-height corner
+// blocks clamp it at each end. Cut from sheet, it stays one piece: the DXF is
+// whole, without the lap bolts.
 panelTile      = "tiles";   // [tiles, whole, upper, lower]
 
 /* [Panel] */
 // Defaults are the smallest panel that still carries everything. The hopper
-// overhangs the top edge, which sits just above its upper bolt.
-panelFeederSide = 100;  // past the drop axis on the feeder's side -- meets the hopper face at the top edge
-panelFarSide    = 56;   // past the drop axis on the other side -- puts the cabinet's corner post clear of
-                        // the servo mount (x +/-24.4), the arm slot and the heatsinks (x +/-28.5)
-panelTop        = 100;  // above the discharge exit
+// overhangs the top edge, which sits just above its upper bolt; the two sides
+// are worked out below, from what sits inside against them.
+panelFeederMin  = 100;  // past the drop axis toward the back (the feeder's side), at least -- meets the hopper face
+panelAboveBolt  = 11;   // the top edge, above the hopper's highest bolt
 panelBelowArm   = 76.2; // clear panel below the horn arm's underside (3 in)
 panelCornerR    = 3;    // outside corners
 
@@ -40,14 +43,29 @@ panelCornerR    = 3;    // outside corners
 boltClearD   = 5.5;     // M5 clearance
 armSlotW     = 44;      // slot the horn arm swings through
 armSlotClear = 2;       // above and below the arm, in that slot
-seamScrewD   = 3.4;     // M3 clearance, into heat-set inserts in the belt rail
-seamScrewOff = 8;       // seam screws, above and below the split line
+screwD       = 3.4;     // M3 clearance: into the corner blocks' heat-set inserts, and the lap bolts
 
-// Split line for printing: halfway between the top of the arm slot and the
-// bottom of the grommet hole, but raised if need be to keep the upper tile
-// on the bed.
+// the top edge, just above the hopper's highest bolt; the hopper overhangs it
+panelTop = max([for (b = hopperBolts) feederToWorld([clDist, b[0], b[1]])[2]]) + panelAboveBolt;
+
+// The front side: just far enough out that the seam-height corner block there
+// clears the heatsinks' round backs (and the holder) across its height.
+function panelFarSideFor(split) =
+    let (dz = min([for (z = [split - cornerBlock/2 : 1 : split + cornerBlock/2]) abs(z - leadZ)]))
+    heatsinkReachX(dz) + 1 + cornerBlock + cabinetWallThk;
+// how far the heatsinks reach across (x) at dz above or below the lead height
+function heatsinkReachX(dz) =
+    abs(dz) >= heatsinkH/2 ? heatsinkTipX : min(heatsinkBackX, heatsinkArcC + sqrt(heatsinkArcR^2 - dz^2));
+panelFarSide = panelFarSideFor(panelSplitZ());
+// The back side: far enough out that the Pico motor board (below), stood just
+// off the back wall, clears the heatsinks' backs altogether.
+panelFeederSide = max(panelFeederMin, cabinetWallThk + 1 + 66.802 + heatsinkBackX + 0.5);   // (66.802: the board across)
+
+// Split line for printing: halfway across the widest band nothing crosses,
+// between the heatsink holder's bottom bolt and the lead grommets, but raised
+// if need be to keep the upper tile on the bed.
 function panelSplitZ() =
-    max(((armTopZ + armSlotClear) + (leadZ - ((coilTube + 2)/2 + grommetLip))) / 2,
+    max(((leadZ - holderBoltOff + boltClearD/2) + (leadZ - ((coilTube + 2)/2 + grommetLip))) / 2,
         panelTop - (printBed - 10));
 
 // The lead pass-throughs, one per lead, grown by d. The assembly uses them for
@@ -57,11 +75,37 @@ module lead_hole_2d(d = 0) {
         translate([s * leadGap/2, 0]) circle(d = coilTube + 2 + 2*d);
 }
 
-// Seam screws across the panel: one near each edge, and one between the
-// feeder-side edge and the heatsinks, which notch the belt rail behind the
-// middle of the wall.
-heatsinkNotchX = heatsinkSpacing/2 + heatsinkDepth + 1;
-seamScrewXs = [-panelFeederSide + 15, (-panelFeederSide + 15 - heatsinkNotchX)/2, panelFarSide - 15];
+// Corner blocks: a screw into each at its middle. The seam-height ones sit on
+// the seam, so their screw goes through both halves of the lap and holds both
+// tiles -- one row of screws along the seam, with the lap screws.
+cornerXs = [-panelFeederSide + cabinetWallThk + cornerBlock/2, panelFarSide - cabinetWallThk - cornerBlock/2];
+function cornerZs() = let (bot = armBotZ - panelBelowArm)
+    [bot + cabinetWallThk + cornerBlock/2, panelSplitZ(), panelTop - cabinetWallThk - cornerBlock/2];
+// Lap bolts (printed tiles only), between the corner blocks where the inside is
+// clear for a nut: between the back corner block and the heatsinks.
+lapScrewXs = [(-panelFeederSide + cabinetWallThk + cornerBlock - (heatsinkSpacing/2 + heatsinkDepth + 1)) / 2];
+
+// The Pico motor board (eamars Pico Motor Expansion Board v2) stands off the
+// inside of this panel on four M3 standoffs, under the hopper, between the
+// seam-height and top corner blocks: its USB edge right up against the back
+// wall, where its ports come out. The assembly places it from
+// here and checks it.
+picoBoardSize  = [91.694, 66.802];                          // along its USB edge, across
+picoHoleUs     = [5.08, 86.614];                            // its holes, along the USB edge...
+picoHoleVs     = [5.08, 61.722];                            // ...and in from it
+picoEdgeX      = -panelFeederSide + cabinetWallThk + 1;     // the USB edge, 1 mm off the back wall
+// the top edge: as low as the heatsinks' round backs allow under the board's
+// inboard edge, and in any case under the head of the hopper's lower bolt (M5,
+// 9 across), so a key can reach that over the top of the board
+picoTopZ       = min(leadZ + heatsinkReachAt(picoEdgeX + picoBoardSize[1]) + 1.5 + picoBoardSize[0],
+                     min([for (b = hopperBolts) feederToWorld([clDist, b[0], b[1]])[2]]) - 9/2 - 2);
+function picoBoardAt() = [picoEdgeX, picoTopZ];
+
+// The hopper motor's cable comes in above the Pico board, toward the back
+// edge, where the hopper doesn't cover the panel outside: a slot for its flat
+// ribbon and rectangular connector.
+motorCableAt   = [-75, 45];     // centre
+motorCableSlot = [18, 8];       // across, and tall
 
 // Every edge of the panel as a list of simple features, all in mm in the
 // panel's own frame. The first is the outline; the rest are cut out of it.
@@ -85,58 +129,44 @@ function panelFeatures() =
         //M5 clearance: end of the funnel arm
         [for (z = funnelBoltZs) ["circle", 0, funnelZ + z, boltClearD]],
         //M5 clearance: hopper side block, where its bolts land on the wall
-        [for (y = hopperBoltYs) let (p = feederToWorld([clDist, y, hopperBoltZ]))
+        [for (b = hopperBolts) let (p = feederToWorld([clDist, b[0], b[1]]))
             ["circle", p[0], p[2], boltClearD]],
         //M5 clearance: servo mount, inside
         [for (x = [-servoMountBoltX, servoMountBoltX])
             ["circle", x, servoMountTopZ - servoMountH/2, boltClearD]],
-        //M3 clearance: into the belt rail, either side of the split line
-        [for (x = seamScrewXs, s = [-1, 1])
-            ["circle", x, panelSplitZ() + s*seamScrewOff, seamScrewD]]
+        //M3 clearance: the Pico motor board's standoffs, inside (the same holes serve a
+        //right-hand build, the board turned end for end)
+        [for (u = picoHoleUs, v = picoHoleVs) ["circle", picoEdgeX + v, picoTopZ - u, screwD]],
+        //the hopper motor's cable, above the Pico board
+        [["rrect", motorCableAt[0] - motorCableSlot[0]/2, motorCableAt[1] - motorCableSlot[1]/2,
+          motorCableSlot[0], motorCableSlot[1], 1]],
+        //M3 clearance: into the corner blocks
+        [for (x = cornerXs, z = cornerZs()) ["circle", x, z, screwD]]
     );
 
-module feature_2d(f) {
-    if (f[0] == "rrect")
-        translate([f[1], f[2]])
-            offset(r=f[5]) offset(delta=-f[5]) square([f[3], f[4]]);
-    else if (f[0] == "rect")
-        translate([f[1], f[2]]) square([f[3], f[4]]);
-    else if (f[0] == "slot")
-        hull() for (s = [1, -1]) translate([f[1] + s*f[3], f[2]]) circle(r=f[4]);
-    else if (f[0] == "circle")
-        translate([f[1], f[2]]) circle(d=f[3]);
-}
-
 module sidePanel2d() {
-    features = panelFeatures();
-    difference(){
-        feature_2d(features[0]);
-        for (i = [1 : len(features) - 1])
-            feature_2d(features[i]);
-    }
+    features_2d(panelFeatures());
 }
 
 // Wrapped as a module so assembly/assembly.scad can place it.
 module sidePanel() {
-    linear_extrude(height=cabinetWallThk)
-        sidePanel2d();
+    flat_part(panelFeatures(), cabinetWallThk);
 }
 
-// One printing tile: "upper" or "lower" of the split line.
+// One printing tile: "upper" or "lower" of the split line, meeting the other
+// in the half-lap, with the lap bolts' holes (flatPanel.scad).
 module sidePanelTile(which) {
-    bot = armBotZ - panelBelowArm;
-    split = panelSplitZ();
-    intersection() {
-        sidePanel();
-        if (which == "upper") translate([-500, split, -1]) cube([1000, 500, 100]);
-        else                  translate([-500, split - 500, -1]) cube([1000, 500, 100]);
-    }
+    flat_tile(panelFeatures(), cabinetWallThk, panelSplitZ(), tileLap, which, lapScrewXs, screwD);
 }
 
 tileW = panelFeederSide + panelFarSide;
 assert(tileW <= printBed, "the panel is wider than the printer bed");
-assert(panelTop - panelSplitZ() <= printBed && panelSplitZ() - (armBotZ - panelBelowArm) <= printBed,
+assert(panelTop - (panelSplitZ() - tileLap/2) <= printBed
+       && (panelSplitZ() + tileLap/2) - (armBotZ - panelBelowArm) <= printBed,
        "a panel tile is taller than the printer bed");
+assert(panelSplitZ() - tileLap/2 >= leadZ - holderBoltOff + boltClearD/2 + 1
+       && panelSplitZ() + tileLap/2 <= leadZ - ((coilTube + 2)/2 + grommetLip) - 1,
+       "the tiles' half-lap runs into the heatsink holder's bolt or the lead grommets");
 
 if (echoFeatures) echo(panelFeatures = panelFeatures());
 if (exportDXF) sidePanel2d();

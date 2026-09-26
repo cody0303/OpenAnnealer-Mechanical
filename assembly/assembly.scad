@@ -9,14 +9,16 @@
 // view-only file, not a part. Don't export it.
 //
 // Only things with no source file are modelled locally: the motor, servo,
-// induction coil, thumbscrew, grommet, the cases, and for now the cabinet box
-// and the harvested heater's parts inside it. Those are rough stand-ins for
+// induction coil, thumbscrew, grommets, the cases, the harvested heater's
+// parts and the other electronics. Those are rough stand-ins for
 // visualisation, not parts to print.
 //
-// Where everything sits comes from cad/feeder/layout.scad, which the side
-// panel shares, so the panel's holes always land on the parts. The world
-// frame is described there: Z is the drop axis, the funnel arm points +Y to
-// the cabinet wall. Stack spacings are in sharedDims.
+// Where everything sits comes from cad/feeder/layout.scad (the feeder stack)
+// and cad/cabinet/boxLayout.scad (the box and what's in it), which the parts
+// share, so their holes always land on the parts. The world frame is in
+// layout.scad: Z is the drop axis, the funnel arm points +Y to the cabinet's
+// left panel. The box's front, back, left and right are named in boxLayout.
+// Stack spacings are in sharedDims.
 //
 // feederSide flips the unit left/right. It does it by turning the feeder
 // +/-90 deg about the drop axis, not by mirroring: the hopper is symmetric
@@ -54,38 +56,17 @@ caseNeck     = 60.9;    // base to the shoulder/neck junction
 /* [Coil leads mock] */
 leadIntoCabinet = 15;   // how far the leads run on past the wall's inner face, into the heatsinks
 
-/* [Cabinet box -- concept, not parts yet] */
-/* Flat faces (ply or print, cabinetWallThk thick) on four printed corner
-   posts, base and top plates. The feeder panel is the whole front face, so
-   the box is exactly as wide as the panel; the screen housing sits on the far
-   end wall.
+/* [Cabinet box] */
+/* Flat faces (ply or print, cabinetWallThk thick) -- the left panel
+   (cad/cabinetFlat/sidePanel.scad), front, back and right walls, lid and base
+   (the other files there) -- screwed into printed corner blocks
+   (cad/cabinet/cornerBlock.scad) in the four vertical corners at the base,
+   the tile seam and the top. Printed faces split at the seam and meet in a
+   half-lap, bolted through with nuts inside. Where everything in and on the
+   box sits, and the screen tilt, the harvested heater's pose and the Pico
+   board's settings, are in cad/cabinet/boxLayout.scad, which the faces share.
 */
-boxCutaway    = false;  // drop the top, back and screen-end walls to see inside
-screenTiltDeg = 25;     // [0:1:45]
-postLeg       = 20;     // corner posts: L-section legs...
-postT         = 4;      // ...and thickness
-beltH         = 20;     // belt rail round the inside at the tile seam: height...
-beltT         = 8;      // ...and depth off the wall
-
-/* [Heater + electronics mocks -- CONFIRM sizes] */
-/* The coil, heatsinks, transformer and driver board stay in a short chain.
-   The coil's leads come through the wall into the heatsinks on the holder;
-   the transformer's cables leave the heatsinks' inner ends and it runs
-   straight back from just behind them and down at 45 deg toward the driver
-   board, which lies flat on the floor -- weight low. The board's fan is on
-   the back wall just above the board's end, so the box stays one printer bed
-   deep. Pose the transformer with the xfmr* settings; checkTransformer shows
-   any clash. The low-voltage supply is left out for now.
-*/
-driverBoard     = [185, 35, 63.5];    // long (7.25 in), thick (board + parts + heatsink bar), wide
-driverFan       = [45, 25];           // fan, now on the back wall: size and depth
-boardStandoff   = 8;                  // the board's standoffs off the floor -- under the servo mount at most
-transformerSize = [63.5, 90];         // diameter, length (3.5 in)
-xfmrDown        = 45;                 // [0:1:90] transformer axis, degrees below horizontal
-xfmrSide        = 0;                  // [0:1:90] swing from straight back (0) to along the wall (90), toward the feeder side
-xfmrSetback     = 66;                 // inside face of the front wall to the axis at its front end -- clear of the heatsinks
-xfmrShiftX      = 0;                  // its front end, off the drop axis (toward the feeder side is -)
-xfmrRaise       = -20;                // its front end, above the lead height
+boxCutaway    = false;  // drop the lid, front and right walls to see inside
 
 /* [Display] */
 showCases   = true;
@@ -93,12 +74,12 @@ showMotor   = true;
 showCoil    = true;
 showFunnel  = true;
 showArm     = true;
-showCabinet = true;     // the feeder side panel and the lead grommet
+showCabinet = true;     // the left panel and the lead grommets
 showBox     = true;     // the rest of the cabinet
 showElectronics = true;
 checkTransformer = false;   // true: draw only where the transformer hits something -- nothing drawn means clear
-checkPosts       = false;   // true: draw only where the corner posts or belt hit the servo, its mount or the swinging arm
-armSwing         = 45;      // the arm's swing each way from the drop axis, for checkPosts -- the wall slot limits it
+checkCorners     = false;   // true: draw only where the corner blocks hit the servo, its mount or the swinging arm
+armSwing         = 45;      // the arm's swing each way from the drop axis, for checkCorners -- the wall slot limits it
 hopperAlpha = 0.35;   // 1 = solid; lower to see the wheel and motor through it
 funnelAlpha = 1;
 cabinetAlpha = 0.35;     // lower to see the leads and servo inside
@@ -123,7 +104,9 @@ use <../cad/feeder/hopper.scad>;        // provides hopper()
 use <../cad/feeder/shaftAdapter.scad>;  // provides shaftAdapter()
 use <../cad/feeder/funnel.scad>;        // provides funnel()
 use <../cad/cabinet/servoMount.scad>;   // provides servoMount()
-use <../cad/cabinet/heatsinkHolder.scad>; // provides heatsinkHolder(), heatsinkHolderSize()
+use <../cad/cabinet/heatsinkHolder.scad>; // provides heatsinkHolder(), heatsinkHolderSize(), heatsinkHolderBackset()
+use <../cad/cabinet/transformerCradle.scad>; // provides transformerCradle(), transformerCradleFit()
+use <../cad/cabinet/fanAdapter.scad>;    // provides fanAdapter(), on_seat(), fanAdapterMaxX(), fanAdapterMinX(), fanAdapterScrews(), fanAdapterInlet(), fanAdapterSeatT()
 use <../cad/cabinetFlat/sidePanel.scad>; // provides sidePanel(), sidePanelTile(), panelFeatures(), panelSplitZ(), lead_hole_2d()
 
 // The other two have no nested `use`, so they can be pulled straight in.
@@ -133,42 +116,12 @@ module part_singulator() { include <../cad/feeder/singulator.scad>; }
 module part_hornMount()  { include <../cad/feeder/hornMount.scad>; }
 use <../cad/cabinet/screenTilt.scad>;    // provides screenTilt(), screenTiltWallFeatures(), in_plate_frame()
 
-// Box layout, in left-hand coordinates (a right-hand build is the mirror).
-// Its front-left corner, top and bottom come from the feeder panel's outline,
-// so the box follows the panel if that changes.
-panelOutline = panelFeatures()[0];          // ["rrect", x, y, w, h, r]
-boxW  = panelOutline[3];                    // the feeder panel is the whole front
-boxX0 = panelOutline[1];                    // feeder side
-boxX1 = boxX0 + boxW;                       // screen side
-boxY0 = clDist;
-boxZ0 = panelOutline[2];
-boxZ1 = panelOutline[2] + panelOutline[4];
-seamZ = panelSplitZ();                      // every printed wall splits here, on the feeder panel's line
-T     = cabinetWallThk;
+use <../cad/cabinet/cornerBlock.scad>;   // provides cornerBlock()
+use <../cad/cabinet/flatPanel.scad>;     // provides flat_part(), flat_tile()
 
-// transformer: front end (to the coil) just behind the lead entry, back end
-// (to the board) down at the far end of its axis
-xfmrDir = [-sin(xfmrSide)*cos(xfmrDown), cos(xfmrSide)*cos(xfmrDown), -sin(xfmrDown)];
-xfmrA   = [xfmrShiftX, boxY0 + T + xfmrSetback, leadZ + xfmrRaise];
-xfmrB   = xfmrA + transformerSize[1]*xfmrDir;
-
-// the box: one feeder panel wide, one printer bed deep
-boxD  = printBed;
-boxY1 = clDist + boxD;
-
-// driver board flat on the floor front to back, output end at the front,
-// centred under the transformer's back end as far as the corner posts allow
-// (their legs reach postLeg in from each corner)
-boardX0 = max(boxX0 + T + postLeg + 1, min(boxX1 - T - postLeg - 1 - driverBoard[2], xfmrB[0] - driverBoard[2]/2));
-boardY0 = boxY0 + T + (boxD - 2*T - driverBoard[0]) / 2;
-boardZ0 = boxZ0 + T + boardStandoff;
-assert(driverBoard[0] <= boxD - 2*T, "the driver board is longer than the box is deep");
-
-// screen housing on the far end wall, centred front to back, up at eye level
-// now that the electronics sit low
-scrY = boxY0 + boxD/2;
-scrZ = 0;
-
+// Where the box and everything in and on it sits -- shared with the faces'
+// part files. Needs `hand`, above, and the files it lists `use`d, which they are.
+include <../cad/cabinet/boxLayout.scad>
 
 // Takes children drawn in hopper.scad's own frame and puts them in the world:
 // lean back, slide the bore exit onto the origin, then spin about the drop axis.
@@ -220,7 +173,7 @@ module mock_leads() {
             [s * coilR,     0,              turnZ],
             [s * coilR,     coilR + 5,      turnZ],
             [s * leadGap/2, coilR + 20,     leadZ],
-            [s * leadGap/2, clDist + cabinetWallThk + leadIntoCabinet, leadZ]
+            [s * leadGap/2, clDist + cabinetWallThk + heatsinkHolderBackset() + leadIntoCabinet, leadZ]
         ], coilTube);
     }
 }
@@ -228,29 +181,23 @@ module mock_leads() {
 // The heatsink holder in place: its +X end face on the inside of the wall,
 // centred between the leads.
 module place_holder() {
-    translate([0, clDist + cabinetWallThk + heatsinkHolderSize()[0]/2, leadZ]) rotate([0, 0, -90]) children();
+    translate([0, clDist + cabinetWallThk + heatsinkHolderSize()[0] - heatsinkLen/2, leadZ]) rotate([0, 0, -90]) children();
 }
 
-// The two heatsinks on the holder's sides: a finned body off each flat face,
-// fins curling back toward the holder above and below it. Rough -- the lead
-// bores are heatsinkBoreIn in from the flat face, at mid-height.
+// The two heatsinks on the holder's sides, as their outline: a round back
+// (the arc in layout.scad) out to the fin tips, which curl back toward the
+// holder above and below its centre block. The lead bores are heatsinkBoreIn
+// in from the flat face, at mid-height.
 module mock_heatsinks() {
-    translate([0, clDist + cabinetWallThk, leadZ]) rotate([-90, 0, 0])
+    translate([0, clDist + cabinetWallThk + heatsinkHolderBackset(), leadZ]) rotate([-90, 0, 0])
         linear_extrude(heatsinkLen)
-            for (s = [1, -1]) mirror([s < 0 ? 1 : 0, 0]) {
-                translate([heatsinkSpacing/2, -heatsinkH/2]) square([heatsinkDepth, heatsinkH]);
-                for (t = [1, -1])
-                    translate([heatsinkSpacing/2 - heatsinkFinReach, t > 0 ? 9 : -heatsinkH/2])
-                        square([heatsinkFinReach + 0.01, heatsinkH/2 - 9]);
+            for (s = [1, -1]) mirror([s < 0 ? 1 : 0, 0]) difference() {
+                intersection() {
+                    translate([heatsinkArcC, 0]) circle(r = heatsinkArcR, $fn = 180);
+                    translate([heatsinkTipX, -heatsinkH]) square([heatsinkBackX, 2*heatsinkH]);
+                }
+                translate([heatsinkTipX - 1, -9]) square([heatsinkSpacing/2 - heatsinkTipX + 1, 18]);  // the holder's centre block
             }
-}
-
-// the room the holder and heatsinks take up inside the wall, grown by c
-module heatsink_block_envelope(c = 0) {
-    w = heatsinkSpacing/2 + heatsinkDepth + c;
-    h = max(heatsinkHolderSize()[2], heatsinkH)/2 + c;
-    translate([-w, clDist + cabinetWallThk - 1, leadZ - h])
-        cube([2*w, max(heatsinkHolderSize()[0], heatsinkLen) + 1 + c, 2*h]);
 }
 
 // Rubber grommet in each lead hole, lipped on the outside only -- the
@@ -315,75 +262,48 @@ module mock_pile() {
 }
 
 // ---------------------------------------------------------------------------
-// Cabinet box -- concept stand-ins, left-hand coordinates
+// Cabinet box, left-hand coordinates
 // ---------------------------------------------------------------------------
-// Places children in screenTilt.scad's frame (x along the wall, y up, z out)
-// on the screen-end wall. The housing is turned, not mirrored, for a
-// right-hand build: it has to match the real (unmirrored) Mini12864.
-module on_screen_wall() {
-    if (hand > 0) multmatrix([[0, 0, 1, boxX1], [1, 0, 0, scrY], [0, 1, 0, scrZ], [0, 0, 0, 1]]) children();
-    else          multmatrix([[0, 0, -1, -boxX1], [-1, 0, 0, scrY], [0, 1, 0, scrZ], [0, 0, 0, 1]]) children();
+// The corner blocks, in the four vertical corners: on the base, across the
+// tile seam, and under the lid, each turned so its inserts face the faces it
+// takes screws from (shown mirrored here -- the part itself just turns). cut
+// leaves out the ones in the corner the cutaway opens (front, right).
+module corner_blocks(cut = false) {
+    for (i = [0, 1], j = [0, 1], k = [0, 1, 2])
+        if (!(cut && i == 1 && j == 1))
+            translate([cbX[i], cbY[j], cbZ[k]])
+                translate([i*cornerBlock, j*cornerBlock, k == 2 ? cornerBlock : 0])
+                    mirror([i, 0, 0]) mirror([0, j, 0]) mirror([0, 0, k == 2 ? 1 : 0]) cornerBlock();
 }
 
-// printed L posts in the vertical corners, between base and top, split at
-// the seam; and the belt rail that runs round the inside at the seam, which
-// every wall's two tiles screw into
-module box_posts() {
-    for (c = [[boxX0 + T, boxY0 + T, 1, 1], [boxX1 - T, boxY0 + T, -1, 1],
-              [boxX0 + T, boxY1 - T, 1, -1], [boxX1 - T, boxY1 - T, -1, -1]])
-        translate([c[0], c[1], 0]) mirror([c[2] < 0 ? 1 : 0, 0, 0]) mirror([0, c[3] < 0 ? 1 : 0, 0])
-            for (z = [[boxZ0 + T, seamZ - beltH/2], [seamZ + beltH/2, boxZ1 - T]])
-                translate([0, 0, z[0]]) {
-                    cube([postLeg, postT, z[1] - z[0]]);
-                    cube([postT, postLeg, z[1] - z[0]]);
-                }
-    // belt: front, back and both ends, notched where the transformer passes
-    difference() {
-        translate([0, 0, seamZ - beltH/2]) {
-            translate([boxX0 + T, boxY0 + T, 0]) cube([boxW - 2*T, beltT, beltH]);
-            translate([boxX0 + T, boxY1 - T - beltT, 0]) cube([boxW - 2*T, beltT, beltH]);
-            translate([boxX0 + T, boxY0 + T, 0]) cube([beltT, boxD - 2*T, beltH]);
-            translate([boxX1 - T - beltT, boxY0 + T, 0]) cube([beltT, boxD - 2*T, beltH]);
-        }
-        transformer_mock(clear = 2);
-        heatsink_block_envelope(1);
-    }
-}
-
+// The front, back and right walls, lid and base, from their part files'
+// features: the tall ones as their two printing tiles, a hairline apart.
 module box_faces() {
-    h = boxZ1 - boxZ0;
-    difference() {
-        union() {
-            if (!boxCutaway) translate([boxX0, boxY1 - T, boxZ0]) cube([boxW, T, h]);           // back
-            translate([boxX0, boxY0 + T, boxZ0]) cube([T, boxD - 2*T, h]);                      // feeder-side end
-            if (!boxCutaway) translate([boxX1 - T, boxY0 + T, boxZ0]) cube([T, boxD - 2*T, h]); // screen end
-            if (!boxCutaway) translate([boxX0 + T, boxY0 + T, boxZ1 - T]) cube([boxW - 2*T, boxD - 2*T, T]); // top
-            translate([boxX0 + T, boxY0 + T, boxZ0]) cube([boxW - 2*T, boxD - 2*T, T]);         // base
-        }
-        // intake, low along the feeder-side end
-        for (z = [0 : 7 : 21]) translate([boxX0 - 1, boxY0 + 40, boxZ0 + T + 8 + z]) cube([T + 2, boxD - 80, 4]);
-        // exhaust through the back wall, behind the fan
-        for (z = [0 : 7 : driverFan[0] - 10]) translate([boardX0 + driverBoard[2]/2 - driverFan[0]/2 + 3, boxY1 - T - 1, fanZ0 + 5 + z]) cube([driverFan[0] - 6, T + 2, 4]);
-        // IEC inlet cut-out, on the back up clear of the board
-        translate([-14, boxY1 - T - 1, seamZ + 30]) cube([28, T + 2, 40]);
-        // tile seams, as hairlines
-        translate([boxX0 - 1, boxY0 + T, seamZ - 0.3]) cube([T + 2, boxD - 2*T, 0.6]);
-        translate([boxX0 - 1, boxY1 - T - 1, seamZ - 0.3]) cube([boxW + 2, T + 2, 0.6]);
-    }
+    for (f = boxCutaway ? ["back", "base"] : ["front", "back", "right", "lid", "base"])
+        place_face(f)
+            if (faceIsTiled(f)) {
+                translate([0, 0.3, 0]) flat_tile(faceFeatures(f), T, seamZ, tileLap, "upper", faceLapXs(f));
+                flat_tile(faceFeatures(f), T, seamZ, tileLap, "lower", faceLapXs(f));
+            } else flat_part(faceFeatures(f), T);
 }
 
-// the screen housing's window and screw holes, cut through the end wall
-module screen_wall_cut() {
-    on_screen_wall() translate([0, 0, -T - 1]) linear_extrude(T + 2)
-        for (f = screenTiltWallFeatures(screenTiltDeg))
-            if (f[0] == "rect") translate([f[1], f[2]]) square([f[3], f[4]]);
-            else translate([f[1], f[2]]) circle(d = f[3]);
+// The Pico motor board, roughly: board, the Pico on its headers, the two USB
+// ports, the stepper driver modules, the D-sub (fitted, but nothing plugs in),
+// and the standoffs to the wall. In the board's own frame.
+module pico_board_mock() {
+    color("DarkGreen") translate([0, 0, -pb[2]]) linear_extrude(pb[2])
+        offset(r = 2.286) offset(delta = -2.286) square([pb[0], pb[1]]);
+    color("SeaGreen") translate([42.926 - 10.5, 1.93, picoLift]) cube([21, 51, 1]);        // Pico 2 W
+    color("Silver") translate([42.926 - 4.5, 0.6, picoLift + 1]) cube([9, 6, 3.2]);        // its USB port
+    color("Silver") translate([71.882 - 4.47, -0.1, 0]) cube([8.94, 7.3, 3.2]);           // the board's USB-C
+    for (v = [18.98, 42.67])                                                                // stepper drivers
+        color("Purple") translate([18.54 - 7.62, v - 10.16, 0]) cube([15.24, 20.32, 20]);
+    color("DimGray") translate([79.5, 29.98 - 15.5, 0]) cube([pb[0] + 1 - 79.5, 31, 12.5]);   // D-sub, facing off the board's end
+    for (hl = pbHoles)
+        color("Gold") translate([hl[0], hl[1], -pb[2] - picoStandoff]) cylinder(d = 5.5, h = picoStandoff, $fn = 6);
 }
 
 // the harvested heater and the rest of the electronics
-// the board's fan, on the back wall just above the board's far end
-fanZ0 = boardZ0 + driverBoard[1] + 2;
-
 // the transformer, as its own module so it can be checked for clashes
 // (clear grows it all round, for cutting notches)
 module transformer_mock(clear = 0) {
@@ -396,17 +316,21 @@ module box_electronics() {
     b = driverBoard;
     // driver board flat on the floor, output end at the front
     translate([boardX0, boardY0, boardZ0]) {
-        color("Silver")      cube([4, b[0], b[1]]);                                          // heatsink bar
-        color("DarkGreen")   translate([4, 0, 2]) cube([b[2] - 4, b[0], 1.6]);               // board
-        color([0.2,0.2,0.2]) translate([8, 5, 3.6]) cube([b[2] * 0.6, b[0] - 10, b[1] - 4]); // parts
+        color("Silver")      translate([b[2] - 4, 0, 0]) cube([4, b[0], b[1]]);                 // heatsink bar, front side
+        color("DarkGreen")   translate([0, 0, 2]) cube([b[2] - 4, b[0], 1.6]);                  // board
+        color([0.2,0.2,0.2]) translate([b[2] * 0.4 - 8, 5, 3.6]) cube([b[2] * 0.6, b[0] - 10, b[1] - 4]); // parts
     }
-    // its fan, on the back wall just above the board's far end
-    color("Black") translate([boardX0 + b[2]/2 - driverFan[0]/2, boxY1 - T - driverFan[1], fanZ0])
-        cube([driverFan[0], driverFan[1], driverFan[0]]);
-    // transformer, diagonally down along the front wall from the lead entry to the board
+    // its fan, in its duct on the front wall, blowing down the heatsink
+    on_fan_duct() {
+        color("DimGray") fanAdapter();
+        color("Black") on_seat() translate([-driverFanSize/2, -driverFanSize/2, fanAdapterSeatT()]) cube([driverFanSize, driverFanSize, driverFanDepth]);
+    }
+    // transformer, running right from the heatsinks, low over the board
     color("Gold") transformer_mock();
-    // relay/SSR on the floor beside the board, on the feeder side
-    color("MediumBlue") translate([boardX0 - 27, boxY0 + boxD/2, boxZ0 + T]) cube([25, 40, 20]);
+    // transformer cradle
+    color("Tan") place_cradle() transformerCradle();
+    // relay/SSR on the floor behind the board, at the left end
+    color("MediumBlue") translate(relayAt) cube(relaySize);
     // IEC inlet
     color("Red") translate([-14, boxY1 - 1, seamZ + 30]) cube([28, 2, 40]);
 }
@@ -420,25 +344,30 @@ module bin_and_tray() {
 
 // everything the transformer must keep clear of (left-hand coordinates)
 module transformer_obstacles() {
+    place_cradle() transformerCradle();
     translate([0, servoY, armBotZ]) rotate([0, 0, -90]) part_hornMount();
     translate([0, servoY, servoTopZ]) mock_servo();
     translate([0, servoY, servoMountTopZ]) servoMount();
-    box_posts();
-    translate([boxX0, boxY0, boxZ0]) cube([boxW, T, boxZ1 - boxZ0]);        // front wall
-    translate([boxX0, boxY0, boxZ0]) cube([T, boxD, boxZ1 - boxZ0]);        // feeder-side end
-    translate([boxX1 - T, boxY0, boxZ0]) cube([T, boxD, boxZ1 - boxZ0]);    // screen end
+    corner_blocks();
+    translate([boxX0, boxY0, boxZ0]) cube([boxW, T, boxZ1 - boxZ0]);        // left panel
+    translate([boxX0, boxY0, boxZ0]) cube([T, boxD, boxZ1 - boxZ0]);        // back wall
+    translate([boxX1 - T, boxY0, boxZ0]) cube([T, boxD, boxZ1 - boxZ0]);    // front wall
+    translate([boxX0, boxY1 - T, boxZ0]) cube([boxW, T, boxZ1 - boxZ0]);    // right wall
     translate([boxX0, boxY0, boxZ0]) cube([boxW, boxD, T]);                 // base
-    // the funnel's bolt heads: the lower one on the inside of the front wall, in
+    translate([boxX0, boxY0, boxZ1 - T]) cube([boxW, boxD, T]);             // lid
+    // the funnel's bolt heads: the lower one on the inside of the left panel, in
     // the holder's pocket; the upper one, shared, on the holder's inner end
     translate([0, boxY0 + T, funnelZ + funnelBoltZs[0]]) rotate([-90, 0, 0]) cylinder(d = 9, h = 5);
     translate([0, boxY0 + T + heatsinkHolderSize()[0], funnelZ + funnelBoltZs[1]]) rotate([-90, 0, 0]) cylinder(d = 9, h = 5);
     translate([boardX0, boardY0, boardZ0]) cube([driverBoard[2], driverBoard[0], driverBoard[1]]);
-    heatsink_block_envelope(0);
+    place_holder() heatsinkHolder();
+    mock_heatsinks();
+    on_fan_duct() { fanAdapter(); on_seat() translate([-driverFanSize/2, -driverFanSize/2, fanAdapterSeatT()]) cube([driverFanSize, driverFanSize, driverFanDepth]); }
 }
 
-// what the corner posts and belt must keep clear of: the servo stack and the
-// arm through its swing
-module post_obstacles() {
+// what the corner blocks must keep clear of: the servo stack and the arm
+// through its swing
+module corner_obstacles() {
     translate([0, servoY, servoMountTopZ]) servoMount();
     translate([0, servoY, servoTopZ]) mock_servo();
     for (t = [-armSwing : 5 : armSwing])
@@ -450,8 +379,8 @@ module post_obstacles() {
 // ---------------------------------------------------------------------------
 if (checkTransformer)
     color("Red") intersection() { transformer_mock(); transformer_obstacles(); }
-else if (checkPosts)
-    color("Red") intersection() { box_posts(); post_obstacles(); }
+else if (checkCorners)
+    color("Red") intersection() { corner_blocks(); corner_obstacles(); }
 else {
 
 in_feeder_frame() {
@@ -478,7 +407,7 @@ if (showFunnel)
 
 if (showCoil) {
     color("Peru") translate([0, 0, coilZ]) mock_coil();
-    // heatsink holder, stood upright inside the cabinet on the feeder panel
+    // heatsink holder, stood upright inside the cabinet on the left panel
     // between the leads, its bolted end face on the wall, with the heatsinks
     // the leads plug into on each side. Not mirrored for a right-hand build.
     color("DarkOrange") place_holder() heatsinkHolder();
@@ -515,24 +444,21 @@ if (showCabinet) {
 
 if (showBox) {
     color([0.93, 0.86, 0.72], cabinetAlpha)    // plywood-ish
-        difference() {
-            mirror([hand < 0 ? 1 : 0, 0, 0]) box_faces();
-            screen_wall_cut();
-        }
-    color([0.35, 0.35, 0.38]) mirror([hand < 0 ? 1 : 0, 0, 0]) box_posts();
+        mirror([hand < 0 ? 1 : 0, 0, 0]) box_faces();
+    color([0.35, 0.35, 0.38]) mirror([hand < 0 ? 1 : 0, 0, 0]) corner_blocks(cut = boxCutaway);
     bin_and_tray();
-    // screen housing, the Mini12864's knob and display, the controller behind it, and the E-stop
+    // screen housing, and the Mini12864's knob and display
     on_screen_wall() {
         color("DimGray") screenTilt(screenTiltDeg);
         color("Silver") in_plate_frame(screenTiltDeg)
             translate([104.99/2 - (18.47 + 7.29)/2, (20.78 + 32.71)/2 - 47/2, 0]) cylinder(d = 20, h = 12);
         color("RoyalBlue") in_plate_frame(screenTiltDeg)
             translate([(14.5 + 67.75)/2 - 104.99/2, (10.5 + 40.25)/2 - 47/2, -2.5]) cube([53, 30, 1], center = true);
-        color("ForestGreen") translate([-25, 5, -T - 14]) cube([51, 21, 2]);
-        color("Yellow") translate([0, boxZ0 + 45 - scrZ, 0]) cylinder(d = 22, h = 6);
     }
 }
 
-if (showElectronics)
+if (showElectronics) {
     mirror([hand < 0 ? 1 : 0, 0, 0]) box_electronics();
+    on_pico_board() pico_board_mock();
+}
 }

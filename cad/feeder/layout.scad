@@ -21,8 +21,8 @@ hopperYshift = 0.35 * singulatorDiameter;
 chordLength  = singulatorDiameter * sin(singulatorExposureAngle/2);
 angleX       = (hopperWidth - chordLength) / 2;
 angleY       = angleX / tan(hopperConvergeAngle);
-hopperBoltYs = [10, angleY + hopperYshift - 10];    // hopper frame, on x = +/-clDist
-hopperBoltZ  = (hopperDepth*2/3) / 2;
+hopperBolts  = [[10, (hopperDepth*2/3)/2 + 10],     // hopper frame [y, z], on x = +/-clDist:
+                [angleY + hopperYshift - 10, (hopperDepth*2/3)/2 - 10]];   // staggered across the side block
 // funnel.scad
 funnelBoltZs = [funnelHeight/4, funnelHeight*3/4];  // up from the funnel's exit
 
@@ -67,6 +67,19 @@ leadZ      = coilZ;                         // height the coil leads pass the wa
 // them. Its top bolt is the funnel's upper one, shared; its bottom one sits
 // the same distance below the leads.
 holderBoltOff = funnelZ + funnelBoltZs[1] - leadZ;
+
+// The heatsinks' backs are round: seen along the leads, each is the part of a
+// circle through its fin tips and its deepest point that lies outboard of the
+// fin tips. Across the cabinet (x) from the holder's centre, and up (z) from
+// the lead height:
+heatsinkTipX  = heatsinkSpacing/2 - heatsinkFinReach;
+heatsinkBackX = heatsinkSpacing/2 + heatsinkDepth;
+heatsinkArcC  = (heatsinkBackX^2 - heatsinkTipX^2 - (heatsinkH/2)^2) / (2*(heatsinkBackX - heatsinkTipX));
+heatsinkArcR  = heatsinkBackX - heatsinkArcC;
+// how far the heatsinks reach above (and below) the lead height, at x across
+function heatsinkReachAt(x) =
+    let (a = abs(x))
+    a >= heatsinkBackX ? 0 : a <= heatsinkTipX ? heatsinkH/2 : sqrt(heatsinkArcR^2 - (a - heatsinkArcC)^2);
 
 servoY         = clDist + servoBackset;     // funnel arm to the wall, then the backset
 servoTopZ      = armBotZ - 2;               // horn sits flat under the arm

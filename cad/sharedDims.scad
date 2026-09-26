@@ -1,15 +1,15 @@
 $fn=180;
 
-//printer -- printed pieces are split so each fits this square bed
+/* [Printer] */
 printBed            = 200;
 
-//hardware
+/* [Hardware] */
 m3InsertD           = 4.0;  //M3 heat-set insert hole -- check your insert's datasheet
 m3InsertDepth       = 6.2;  //for a 5.7 mm long insert, plus a little for melt-back
 m4InsertD           = 5.0;
 m4InsertDepth       = 8.0;
 
-//shaftAdapter
+/* [Shaft Adapter] */
 adapterDia      = 20;
 pinLatOffset    = 6;
 numPins         = 2;
@@ -17,7 +17,7 @@ numPins         = 2;
 //overall
 clDist              = 60;
 
-//hopper
+/* [Hopper] */
 wallThickness   = 5;
 baseThickness   = 8;
 hopperWidth     = 100;
@@ -35,21 +35,24 @@ motorHolePatternX   = 31;
 motorHolePatternY   = 31;
 motorClearanceCircle= 23;
 
-//singulator
+/* [Singulator] */
 singulatorDiameter      = 80;
 singulatorExposureAngle = 90;
 numHoles                = 4;
 caseCutout              = 10;
 
-//funnel
+/* [Funnel] */
 topDia              = 40;
 exitDia             = 20;
 funnelHeight        = 30;
 
-//movable support
+/* [Movable Support] */
 supportScrewSize    = 5;
 supportThickness    = 6;
-cabinetWallThk      = 6;  //cabinet faces (ply or print); the servo mount bolts to the inside of the feeder panel
+cabinetWallThk      = 6;  //cabinet faces (ply or print); the servo mount bolts to the inside of the left panel
+cornerBlock         = 20; //printed blocks in the cabinet's vertical corners -- at the base, the tile seam and
+                          //the top; every wall screws into them
+tileLap             = 16; //where a printed wall's two tiles meet: a half-lap this tall, glued and screwed
 
 //MG90S servo -- typical numbers, measure yours
 servoBodyL          = 22.8; //case length, along the ears
@@ -74,16 +77,23 @@ funnelToCase        = maxCaseLen + 7;   //funnel exit down to the thumbscrew hea
                                         //case, with its mouth clear of the funnel
 caseToArm           = 16;   //thumbscrew head at its lowest down to the top face of the horn arm
 
+/* [Heatsink Holder] */
 //induction heater heatsinks -- the pair on the heatsink holder, inside the cabinet; the coil's
 //leads come through the wall and plug into them, and the transformer's cables leave the far end
 heatsinkSpacing     = 20;   //between their flat faces: the holder's width across them
 heatsinkH           = 54;   //overall, across the fins
 heatsinkFinReach    = 5.25; //the fins stand this far proud of the flat face, toward the holder
-heatsinkDepth       = 18.5; //flat face out to the back of the curved base
+heatsinkDepth       = 18.5; //flat face out to the back of the curved base (round, not square -- see layout)
 heatsinkLen         = 38;   //extrusion length, the same as the holder
 heatsinkBoreIn      = 7;    //the coil's lead plugs in this far in from the flat face, at mid-height
+
+//the driver board's fan -- a standard 40 x 20
+driverFanSize       = 40;   //square
+driverFanDepth      = 20;
+driverFanHolePitch  = 32;   //between its screw holes (M3)
 
 //induction coil leads, where they pass through the cabinet wall
 coilTube            = 4;    //copper tube OD
 leadGap             = heatsinkSpacing + 2*heatsinkBoreIn;   //centre-to-centre: the heatsinks' lead bores
 grommetLip          = 2.5;  //the pass-through is grown by this for the grommet
+wallBackset         = 45;

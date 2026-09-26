@@ -20,11 +20,12 @@ motor) pending real hardware.
 
 ## Status
 
-Nothing has been printed or bench-tested yet. The design writeup is in
-[`docs/DESIGN.md`](docs/DESIGN.md). CAD exists for the feed subsystem — hopper, singulator wheel
-and shaft adapter, sized for .223 Rem / 5.56 NATO — in [`cad/feeder/`](cad/feeder); see
-[`cad/README.md`](cad/README.md), which also covers the OpenSCAD nightly requirement. The holder
-arm, coil mount and everything downstream of the feeder isn't modelled yet.
+Nothing has been bench-tested yet. The design writeup is in [`docs/DESIGN.md`](docs/DESIGN.md).
+The whole machine is modelled: the feeder, the funnel and swing arm (up to .338 Lapua Mag), the coil
+mount, and the cabinet with its faces and the parts inside it. See [`cad/README.md`](cad/README.md),
+which also covers the OpenSCAD nightly requirement, and
+[`assembly/assembly.scad`](assembly/assembly.scad) for everything put together. Parts and
+fasteners are in [`assembly/BOM.md`](assembly/BOM.md).
 
 [`docs/concept_diagram.svg`](docs/concept_diagram.svg) predates the current feeder design and is
 kept only as a sketch of the overall machine.

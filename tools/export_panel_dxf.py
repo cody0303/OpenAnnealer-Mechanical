@@ -10,7 +10,8 @@ CIRCLE entities. Units are mm.
 Works on any flat part that follows the cad/cabinetFlat/ convention:
   - a function panelFeatures() returning the part's edges as a list of
     ["rrect", x, y, w, h, r], ["rect", x, y, w, h], ["slot", cx, cy, s, r]
-    and ["circle", cx, cy, d] -- the first is the outline, the rest are cut
+    (along x), ["vslot", cx, cy, s, r] (along y) and ["circle", cx, cy, d]
+    -- the first is the outline, the rest are cut
     out of it (the part should draw itself from the same list);
   - a top-level `echoFeatures` flag that, when true, does
     echo(panelFeatures = panelFeatures());
@@ -130,6 +131,13 @@ def slot(dxf, cx, cy, s, r):
     dxf.arc(cx - s, cy, r, 90, 270)
 
 
+def vslot(dxf, cx, cy, s, r):
+    dxf.line(cx + r, cy - s, cx + r, cy + s)
+    dxf.line(cx - r, cy + s, cx - r, cy - s)
+    dxf.arc(cx, cy + s, r, 0, 180)
+    dxf.arc(cx, cy - s, r, 180, 360)
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("scad", nargs="?", default=str(DEFAULT_SCAD),
@@ -149,6 +157,8 @@ def main():
             rect(dxf, *v)
         elif kind == "slot":
             slot(dxf, *v)
+        elif kind == "vslot":
+            vslot(dxf, *v)
         elif kind == "circle":
             dxf.circle(v[0], v[1], v[2] / 2)
         else:

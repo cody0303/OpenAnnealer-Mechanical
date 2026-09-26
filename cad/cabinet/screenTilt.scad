@@ -8,7 +8,7 @@ include <../sharedDims.scad>
 // it. The back is open to a matching window in the wall, which the board's
 // EXP connectors and ribbons pass through. It's held by four M3 screws from
 // inside the cabinet, through the wall into heat-set inserts in the four ears
-// (M3 x 8 for a 3 mm wall). screenTiltWallFeatures() gives the wall its
+// (M3 x 10 through the 6 mm wall). screenTiltWallFeatures() gives the wall its
 // window and screw holes, in the same form as panelFeatures() in
 // cad/cabinetFlat/sidePanel.scad.
 //
