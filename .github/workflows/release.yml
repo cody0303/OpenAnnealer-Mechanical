@@ -23,23 +23,38 @@ jobs:
         # Parts in a folder with "flat" in its name (e.g. cad/cabinetFlat/)
         # also get a cut-ready DXF from tools/export_panel_dxf.py -- not
         # OpenSCAD's own DXF export, which cutting services reject.
+        # Faces too tall for the printer bed have a panelTile setting; they
+        # get one STL per printing tile (name-upper.stl, name-lower.stl), and
+        # the DXF stays whole.
         run: |
           mkdir -p build
           fail=0
           while IFS= read -r -d '' f; do
             echo "::group::Rendering $f"
             name="build/$(basename "${f%.scad}")"
-            if ! log=$(openscad-nightly --enable=import-function -o "$name.stl" "$f" 2>&1); then
-              echo "$log"
-              if grep -qi "top level object is empty" <<<"$log"; then
-                echo "::warning file=$f::No top-level geometry, skipped"
-              else
-                echo "::error file=$f::STL render failed"
-                fail=1
-              fi
+            if grep -q '^panelTile *=' "$f"; then
+              renders=("upper" "lower")
             else
-              echo "$log"
+              renders=("")
             fi
+            for tile in "${renders[@]}"; do
+              if [[ -n "$tile" ]]; then
+                out="$name-$tile.stl"; args=(-D "panelTile=\"$tile\"")
+              else
+                out="$name.stl"; args=()
+              fi
+              if ! log=$(openscad-nightly --enable=import-function "${args[@]}" -o "$out" "$f" 2>&1); then
+                echo "$log"
+                if grep -qi "top level object is empty" <<<"$log"; then
+                  echo "::warning file=$f::No top-level geometry, skipped"
+                else
+                  echo "::error file=$f::STL render failed ($out)"
+                  fail=1
+                fi
+              else
+                echo "$log"
+              fi
+            done
             dir=$(dirname "$f")
             if [[ "${dir,,}" == *flat* ]]; then
               if ! python3 tools/export_panel_dxf.py "$f" -o "$name.dxf" --openscad openscad-nightly; then

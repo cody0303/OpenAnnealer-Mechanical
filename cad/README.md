@@ -38,7 +38,9 @@ openscad --enable=import-function -o singulator.stl cad/feeder/singulator.scad
 - [`cabinet/`](cabinet) — printed parts inside the cabinet, plus `flatPanel.scad` (the flat-face
   helpers) and `boxLayout.scad`, which aren't parts.
 - [`cabinetFlat/`](cabinetFlat) — the cabinet's six faces. The release also exports each one as a
-  DXF for cutting (`tools/export_panel_dxf.py`), so nothing but faces belongs here.
+  DXF for cutting (`tools/export_panel_dxf.py`), so nothing but faces belongs here. Faces taller
+  than the bed (the ones with a `panelTile` setting) come out of the release as one STL per
+  printing tile, `name-upper.stl` and `name-lower.stl`.
 - [`../assembly/assembly.scad`](../assembly/assembly.scad) — the whole machine, view only, with
   clash checks. [`../assembly/BOM.md`](../assembly/BOM.md) lists parts and fasteners.
 

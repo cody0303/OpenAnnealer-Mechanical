@@ -24,7 +24,8 @@ nothing has been bench-tested. Screw lengths assume 6 mm cabinet faces (`cabinet
 
 6 mm, either printed or cut from plywood from the DXF (`tools/export_panel_dxf.py`, or the release
 artifacts). The front, back, left and right walls are taller than the 200 mm bed; printed, each is
-two tiles joined by a half-lap, glued and bolted.
+two tiles joined by a half-lap, glued and bolted. The release has each tile as its own STL
+(`frontWall-upper.stl`, `frontWall-lower.stl`, …).
 
 | Face | File | Notes |
 |---|---|---|
