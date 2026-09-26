@@ -37,7 +37,7 @@ panelTile      = "tiles";   // [tiles, whole, upper, lower]
 panelFeederMin  = 100;  // past the drop axis toward the back (the feeder's side), at least -- meets the hopper face
 panelAboveBolt  = 11;   // the top edge, above the hopper's highest bolt
 panelBelowArm   = 76.2; // clear panel below the horn arm's underside (3 in)
-panelCornerR    = 3;    // outside corners
+panelCornerR    = 0;    // outside corners -- square, to meet the box's other faces
 
 /* [Holes] */
 boltClearD   = 5.5;     // M5 clearance
