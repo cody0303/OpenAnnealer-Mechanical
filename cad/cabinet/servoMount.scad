@@ -21,12 +21,17 @@ mountFarY   = bodyCenterY + servoEarSpan/2 + 3;         //just past the far ear'
 mountBoltX  = servoMountBoltX;
 mountHalfW  = mountBoltX + wallThickness + 4;
 //the servo's cable leaves the case at its wall-side end, low down: a notch through
-//the mount's end there, open at the bottom, lets it bend straight down against the wall
-cableNotchW = 6;
-cableNotchH = 8;                                        //up from the case bottom
+//the mount's end there, open at the bottom, lets it bend straight down against the wall.
+//It's set by what's left above it: tilted in for insertion, the servo's cable dips
+//to 8 mm below the ears' underside, so no more than that (the wall-side ear's pilot
+//breaks into the notch -- fine)
+cableNotchW    = 6;
+cableNotchRoof = 7;                                     //mount left above the notch -- 8 at most
+cableNotchH    = mountH - cableNotchRoof;               //up from the case bottom
 
 assert(bodyCenterY - servoEarSpan/2 > mountWallY,
        "the servo's wall-side ear hits the cabinet wall -- increase servoBackset");
+assert(cableNotchRoof <= 8, "the cable notch is too shallow for the servo's cable as it's tilted in");
 
 // Wrapped as a module so assembly/assembly.scad can place it.
 module servoMount() {

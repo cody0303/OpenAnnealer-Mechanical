@@ -47,7 +47,7 @@ exitDia             = 20;
 funnelHeight        = 30;
 
 /* [Movable Support] */
-supportScrewSize    = 5;
+supportScrewSize    = 6.6;
 supportThickness    = 6;
 cabinetWallThk      = 6;  //cabinet faces (ply or print); the servo mount bolts to the inside of the left panel
 cornerBlock         = 20; //printed blocks in the cabinet's vertical corners -- at the base, the tile seam and
