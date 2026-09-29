@@ -23,32 +23,32 @@
 screenTiltDeg = 25;     // [0:1:45]
 
 /* [Harvested heater -- CONFIRM sizes] */
-/* The coil, heatsinks, transformer and driver board stay in a short chain.
-   The coil's leads come through the left panel into the heatsinks on the
-   holder; the transformer's cables leave the heatsinks' inner ends and it
-   runs right from there, laid nearly flat (15 deg) just above the driver
-   board, which lies flat on the floor -- weight low -- both as nearly in line
-   with the coil as the fan allows. The board's heatsink is along its front
-   side; the board's fan sits low on the front wall at the left end, in a
-   printed duct (fanAdapter.scad) that pulls air in through the wall and
-   blows it back and right down the heatsink, out of vents low in the right
-   wall. The low-voltage supply is left out for now.
+/* The coil, heatsinks, transformer and driver board stay in a short chain,
+   each joined to the next by the heater's own thick leads. The coil's leads
+   come through the left panel into the heatsinks on the holder; the
+   transformer's leads leave the heatsinks' inner ends for its upper end, and
+   it runs down to the right, in line with the coil. Its leads to the driver
+   board come straight out of the middle of its lower end, so the board stands
+   on end just past it, its terminals near its bottom end on the face its
+   heatsink is on -- facing the transformer. Only a shallow transformer lets
+   those short leads reach an upright board: the steeper it is, the further its
+   end's corner holds the board off. The box is as wide, left to right, as
+   that chain needs. The board's fan, and the low-voltage supply, are left
+   out for now.
 */
-driverBoard     = [185, 44, 44];      // long (7.25 in), and about 44 x 44 in section (board + parts + heatsink bar)
-boardStandoff   = 0;                  // the board off the floor: taped straight down, so it fits under the servo mount
+driverBoard     = [185, 44, 44];      // long (7.25 in), across its end (the terminal row), and deep (face to back)
 transformerSize = [63.5, 90];         // diameter, length (3.5 in)
-xfmrDown        = 15;                 // [0:1:90] transformer axis, degrees below horizontal
-xfmrSide        = 0;                  // [0:1:90] swing from straight right (0) to along the left panel (90), toward the back
-xfmrSetback     = 91;                 // the left panel's inside face to its axis, at its left end -- as far right as it
-                                      // goes, for the driver board's connection; the heatsinks come to it with
-                                      // the heatsink holder's wallBackset (sharedDims)
-xfmrShiftX      = -29;                // off the drop axis, toward the back (-) -- as little as the fan's duct, in
-                                      // front of the driver board's heatsink, allows
+xfmrDown        = 25;                 // [0:1:40] transformer axis, degrees below horizontal
+xfmrShiftX      = 0;                  // off the drop axis, toward the front -- in line with the coil
+xfmrGap         = 17;                 // the heatsinks' inner ends to the middle of its upper end, along its run
+                                      // (how high it sits comes from its cradle and shim)
+hsLeads         = 52;                 // the leads, heatsinks to transformer...
+boardLeads      = 20;                 // ...and transformer to board -- they're thick, so they need room to bend
+boardFaceGap    = 1;                  // the transformer's lower end corner to the board's face
+boardLeadsUp    = 8;                  // the board's terminal row, up from its bottom end
 cradleSlide     = [8, 6];             // the cradle's screws slot in the base, to slide it along the transformer's axis
-                                      // for fitment: toward the heatsinks (left), and toward the right wall -- which
-                                      // the modelled transformer is 1 mm off, but a shorter one could use
-xfmrRaise       = -52.4;              // its left end, above the lead height -- as low as it goes: its lower end,
-                                      // and the cradle's slab, 3 mm over the driver board
+                                      // for fitment: toward the heatsinks (left), and toward the board -- which the
+                                      // modelled transformer is 1 mm off, but a shorter one could use
 
 /* [Pico motor board -- eamars Pico Motor Expansion Board v2] */
 /* On standoffs off the inside of the left panel, under the hopper, its USB
@@ -85,11 +85,58 @@ boxW  = panelOutline[3];                    // the left panel is the whole of th
 boxX0 = panelOutline[1];                    // back
 boxX1 = boxX0 + boxW;                       // front
 boxY0 = clDist;                             // the left panel's outside face
-boxD  = printBed;                           // one printer bed left to right, so lid and base print whole
-boxY1 = boxY0 + boxD;                       // the right wall's outside face
 boxZ0 = panelOutline[2];
 boxZ1 = panelOutline[2] + panelOutline[4];
 seamZ = panelSplitZ();                      // every printed face splits here, on the left panel's line
+// (its right side, boxY1, is set by the heater's chain, below)
+
+// ---------------------------------------------------------------------------
+// The harvested heater
+// ---------------------------------------------------------------------------
+// the transformer: the middle of its upper end, A (to the heatsinks), and of
+// its lower end, B (to the board)
+xfmrR   = transformerSize[0]/2;
+xfmrDir = [0, cos(xfmrDown), -sin(xfmrDown)];
+hsEndY  = boxY0 + T + wallBackset + heatsinkLen;       // the heatsinks' inner ends
+// It sits on its old cradle (transformerCradle.scad, drawn for a shallower
+// pose) with a wedge shim on the cradle's slab tipping it to xfmrDown, its
+// middle over the shim's middle -- which sets how high it sits, and where
+// along its run the cradle stands
+xfmrOnCradle = transformerOnShim();                    // A in the cradle's frame: [along the run, up off the floor]
+xfmrA   = [xfmrShiftX, hsEndY + xfmrGap, boxZ0 + T + xfmrOnCradle[1]];
+xfmrB   = xfmrA + transformerSize[1]*xfmrDir;
+cradleY = xfmrA[1] - xfmrOnCradle[0];                  // the cradle's origin, along the run
+assert(!boxLayoutReady || transformerShimFit()[0] == xfmrDown,
+       str("transformerCradle.scad's shim tips the transformer to ", transformerShimFit()[0], " -- set shimTilt to xfmrDown"));
+assert(!boxLayoutReady || transformerCradleFit()[0] == transformerSize[0] && transformerCradleFit()[1] == transformerSize[1],
+       "transformerCradle.scad is drawn for a different transformer -- set xfmrD and xfmrLen to transformerSize");
+// its leads from the heatsinks: from their inner ends, at the lead bores
+hsLeadRun = max([for (s = [1, -1]) norm([s*leadGap/2, hsEndY, leadZ] - xfmrA)]);
+assert(!boxLayoutReady || hsLeadRun <= hsLeads - 6,
+       str("the heatsinks are ", hsLeadRun, " from the transformer's upper end -- too far for their leads; shorten xfmrGap"));
+assert(!boxLayoutReady || xfmrA[1] - xfmrR*sin(xfmrDown) >= hsEndY + 2 || xfmrA[2] + xfmrR*cos(xfmrDown) <= leadZ - heatsinkH/2 - 2,
+       "the transformer's upper end runs into the heatsinks -- lengthen xfmrGap");
+
+// The driver board stands on end just right of the transformer's lower end,
+// across its leads: its face (the heatsink and terminal side) toward the
+// transformer, boardFaceGap past the end's nearest corner, and its terminal
+// row where the leads, straight out of the end's middle, meet that face.
+// driverBoard is [long, across, deep]: long runs up, across runs front to
+// back, deep runs right from its face.
+boardY0  = xfmrB[1] + xfmrR*sin(xfmrDown) + boardFaceGap;    // its face
+boardRun = (boardY0 - xfmrB[1]) / cos(xfmrDown);              // the leads' run, end to face
+boardX0  = xfmrA[0] - driverBoard[1]/2;
+boardZ0  = xfmrB[2] - (boardY0 - xfmrB[1])*tan(xfmrDown) - boardLeadsUp;
+assert(!boxLayoutReady || boardRun <= boardLeads - 3,
+       str("the board's face is ", boardRun, " from the transformer's lower end -- too far for its leads; make the transformer shallower (xfmrDown)"));
+assert(!boxLayoutReady || boardZ0 + driverBoard[0] <= boxZ1 - T - 1, "the driver board runs into the lid");
+
+// the box's right side: just past the board's back. The front and back walls,
+// lid and base are that wide, less the side walls, and have to fit the bed
+boxY1 = boardY0 + driverBoard[2] + 1 + T;   // the right wall's outside face
+boxD  = boxY1 - boxY0;
+assert(!boxLayoutReady || boxD - 2*T <= printBed - 4,
+       str("the box is ", boxD, " left to right -- its front and back walls, lid and base won't fit the printer bed; shorten xfmrGap"));
 
 // the corner blocks: their lowest corners (x, y, z), and their middles, where
 // the screws go in
@@ -98,64 +145,20 @@ cbY = [boxY0 + T, boxY1 - T - cornerBlock];
 cbZ = [boxZ0 + T, seamZ - cornerBlock/2, boxZ1 - T - cornerBlock];
 cbMid = function (v) [for (c = v) c + cornerBlock/2];
 
-// ---------------------------------------------------------------------------
-// The harvested heater
-// ---------------------------------------------------------------------------
-// transformer: its left end (to the heatsinks) and right end (to the board)
-xfmrDir = [-sin(xfmrSide)*cos(xfmrDown), cos(xfmrSide)*cos(xfmrDown), -sin(xfmrDown)];
-xfmrA   = [xfmrShiftX, boxY0 + T + xfmrSetback, leadZ + xfmrRaise];
-xfmrB   = xfmrA + transformerSize[1]*xfmrDir;
+// the transformer's cradle and shim, on the floor under it, in the cradle's frame
+module place_cradle() { translate([xfmrA[0], cradleY, boxZ0 + T]) children(); }
 
-// driver board flat on the floor, left to right, centred under the
-// transformer's right end, clear of the bottom corner blocks
-boardX0 = max(boxX0 + T + cornerBlock + 1, min(boxX1 - T - cornerBlock - 1 - driverBoard[2], xfmrB[0] - driverBoard[2]/2));
-boardY0 = boxY0 + T + (boxD - 2*T - driverBoard[0]) / 2;
-boardZ0 = boxZ0 + T + boardStandoff;
-assert(!boxLayoutReady || driverBoard[0] <= boxD - 2*T, "the driver board is longer than the box is deep");
-assert(!boxLayoutReady || boardZ0 + driverBoard[1] + 1 <= servoMountTopZ - servoMountH,
-       "the driver board runs into the servo mount above its left end -- lower boardStandoff");
-
-// the transformer's cradle, on the floor under it; it's drawn for the pose
-// above, and says what to change if the pose moves
-cradleFit = transformerCradleFit();
-cradleWant = [transformerSize[0], transformerSize[1], xfmrDown, xfmrA[2] - (boxZ0 + T), boardZ0 + driverBoard[1] - (boxZ0 + T),
-              max(xfmrA[0] - boardX0, boardX0 + driverBoard[2] - xfmrA[0])];   // (from the transformer's axis)
-assert(!boxLayoutReady || xfmrSide == 0, "the transformer cradle is drawn for a transformer running straight to the right");
-assert(!boxLayoutReady || max([for (i = [0 : len(cradleWant) - 1]) abs(cradleFit[i] - cradleWant[i])]) < 0.5,
-       str("transformerCradle.scad is out of step with boxLayout.scad -- set [xfmrD, xfmrLen, tilt, endH, boardTopH, boardHalfW] to ", cradleWant));
-module place_cradle() { translate([xfmrA[0], xfmrA[1], boxZ0 + T]) children(); }
-
-// The board's fan, in its duct low on the front wall at the left end, in
-// front of the board: the duct tips it to the right, so it blows back and
-// right, down the heatsink toward the transformer's end. The inlet is as
-// near the heatsink's middle height as the servo mount above it lets it be
-// (no lower than the floor), and as far left as the front-left corner block
-// allows.
-fanZ = max(boxZ0 + T + driverFanSize/2 + 2 + 0.5,
-           min(boardZ0 + driverBoard[1]/2, servoMountTopZ - servoMountH - 1 - (driverFanSize/2 + 2)));
-assert(!boxLayoutReady || fanZ + driverFanSize/2 + 2 + 1 <= servoMountTopZ - servoMountH + 0.01,
-       "the fan's duct runs into the servo mount -- the servo stack is too low for it"); 
-fanY = boxY0 + T + cornerBlock + 0.5 - fanAdapterMinX(cornerBlock + 0.5);   // (MinX is negative: the duct's reach toward the block)
-assert(!boxLayoutReady || boardX0 + driverBoard[2] + 1 <= boxX1 - T - fanAdapterDepth(),
-       "the driver board runs into the fan's duct -- move the transformer (xfmrShiftX) further back");
-// the duct's frame, in the world: x to the right, y down, z into the cabinet from the front wall
-module on_fan_duct() {
-    multmatrix([[0, 0, -1, boxX1 - T], [1, 0, 0, fanY], [0, -1, 0, fanZ], [0, 0, 0, 1]]) children();
-}
-
-// the relay (or SSR), taped to the floor behind the board at the left end,
-// clear of the back corner block (the transformer's cradle is at the right)
+// the relay (or SSR), taped to the floor at the back-left, clear of the back
+// corner block
 relaySize = [25, 40, 20];
 relayAt   = [boxX0 + T + 2, boxY0 + T + cornerBlock + 2, boxZ0 + T];
-assert(!boxLayoutReady || relayAt[0] + relaySize[0] + 1 <= boardX0, "the relay runs into the driver board");
 
 // the IEC inlet, low on the back wall at the left end, just above the relay --
 // clear of the cradle's back legs, which rule out the floor beside it -- and
 // iecLeftClear off the left panel for its mounting screws. Its body reaches in
-// iecDepth behind the wall, behind the driver board
+// iecDepth behind the wall
 iecY0 = boxY0 + T + iecLeftClear;               // its cut-out's left edge
 iecZ0 = relayAt[2] + relaySize[2] + 1;          // ...and bottom edge
-assert(!boxLayoutReady || boxX0 + T + iecDepth + 1 <= boardX0, "the IEC inlet runs into the driver board");
 assert(!boxLayoutReady || iecY0 + iecCut[0] <= boxY1 - T - cornerBlock, "the IEC inlet runs past the back wall's corner blocks");
 module iec_mock() {
     translate([boxX0 + T, iecY0, iecZ0]) cube([iecDepth, iecCut[0], iecCut[1]]);                  // body, inside
@@ -239,10 +242,6 @@ function frontFeatures() = concat(
         f[0] == "rect" ? let (u0 = scrY + hand*f[1], u1 = scrY + hand*(f[1] + f[3]))
                          ["rect", min(u0, u1), scrZ + f[2], abs(u1 - u0), f[4]]
                        : ["circle", scrY + hand*f[1], scrZ + f[2], f[3]]],
-    //the fan's grille and duct screws: duct (x, y) is world (fanY + x, fanZ - y), so here the same
-    [for (f = fanGrille())
-        f[0] == "rect" ? ["rect", fanY + f[1], fanZ - f[2] - f[4], f[3], f[4]]
-                       : ["circle", fanY + f[1], fanZ - f[2], f[3]]],
     cornerScrews(cbMid(cbY), cbMid(cbZ)));
 
 function backFeatures() = concat(
@@ -254,23 +253,8 @@ function backFeatures() = concat(
     [["rect", -(iecY0 + iecCut[0]), iecZ0, iecCut[0], iecCut[1]]],
     cornerScrews([for (y = cbMid(cbY)) -y], cbMid(cbZ)));
 
-// the fan's intake grille and the duct's screws, in the duct's frame: slots
-// across the inlet, 4 tall; rows that pass near a screw stop short of its
-// column, keeping 1.5 mm of wall round the hole
-function fanGrille() = let (a = fanAdapterInlet(), clr = lapBoltD/2 + 1.5) concat(
-    [for (z = [a[1][0] + 3 : 7 : a[1][1] - 6])
-        let (near = min([for (q = fanAdapterScrews()) abs(z + 2 - q[1])]) < 2 + clr,
-             x0 = near ? max(a[0][0] + 3, -driverFanHolePitch/2 + clr) : a[0][0] + 3,
-             x1 = near ? min(a[0][1] - 3, driverFanHolePitch/2 - clr) : a[0][1] - 3)
-        if (x1 > x0 + 2) ["rect", x0, z, x1 - x0, 4]],
-    [for (q = fanAdapterScrews()) ["circle", q[0], q[1], lapBoltD]]);
-
 function rightFeatures() = concat(
     [["rrect", -boxX1, boxZ0, boxW, boxZ1 - boxZ0, panelOutline[5]]],
-    //exhaust, low, where the fan's air leaves the driver board's heatsink: from the
-    //board's back edge forward to the front corner block
-    let (x0 = boardX0, x1 = boxX1 - T - cornerBlock - 4)
-        [for (z = [0 : 7 : 21]) ["rect", -x1, boxZ0 + T + 8 + z, x1 - x0, 4]],
     cornerScrews([for (x = cbMid(cbX)) -x], cbMid(cbZ)));
 
 function lidFeatures() = concat(
@@ -283,7 +267,7 @@ function baseFeatures() = concat(
     //screws up into the transformer cradle's feet, in slots so it can slide along the
     //transformer's axis (cradleSlide)
     [for (h = transformerCradleFootHoles())
-        ["vslot", xfmrA[0] + h[0], -(xfmrA[1] + h[1] + (cradleSlide[1] - cradleSlide[0])/2),
+        ["vslot", xfmrA[0] + h[0], -(cradleY + h[1] + (cradleSlide[1] - cradleSlide[0])/2),
          (cradleSlide[0] + cradleSlide[1])/2, lapBoltD/2]]);
 
 // Puts a face, drawn flat in its own frame (outside at z = T), in its place.

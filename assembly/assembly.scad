@@ -314,22 +314,20 @@ module transformer_mock(clear = 0) {
 
 module box_electronics() {
     b = driverBoard;
-    // driver board flat on the floor, output end at the front
+    // driver board, on end just right of the transformer's lower end: its face, with
+    // the heatsink and the terminals, toward the transformer. [long, across, deep]
+    // runs up, front to back, and right from that face
     translate([boardX0, boardY0, boardZ0]) {
-        color("Silver")      translate([b[2] - 4, 0, 0]) cube([4, b[0], b[1]]);                 // heatsink bar, front side
-        color("DarkGreen")   translate([0, 0, 2]) cube([b[2] - 4, b[0], 1.6]);                  // board
-        color([0.2,0.2,0.2]) translate([b[2] * 0.4 - 8, 5, 3.6]) cube([b[2] * 0.6, b[0] - 10, b[1] - 4]); // parts
+        color("Orange")      translate([2, 0, 0]) cube([b[1] - 4, 10, boardLeadsUp + 6]);                          // terminals, across its bottom end
+        color("Silver")      translate([4, 0, boardLeadsUp + 12]) cube([b[1] - 8, 4, b[0] - boardLeadsUp - 16]);  // heatsink bar
+        color([0.2,0.2,0.2]) translate([2, 4, boardLeadsUp + 8]) cube([b[1] - 4, b[2] - 10, b[0] - boardLeadsUp - 10]);  // parts
+        color("DarkGreen")   translate([0, b[2] - 3.6, 0]) cube([b[1], 1.6, b[0]]);                                // board
     }
-    // its fan, in its duct on the front wall, blowing down the heatsink
-    on_fan_duct() {
-        color("DimGray") fanAdapter();
-        color("Black") on_seat() translate([-driverFanSize/2, -driverFanSize/2, fanAdapterSeatT()]) cube([driverFanSize, driverFanSize, driverFanDepth]);
-    }
-    // transformer, running right from the heatsinks, low over the board
+    // transformer, running down to the right from the heatsinks to the board
     color("Gold") transformer_mock();
-    // transformer cradle
-    color("Tan") place_cradle() transformerCradle();
-    // relay/SSR on the floor behind the board, at the left end
+    // its cradle, and the shim on it that steepens it
+    color("Tan") place_cradle() { transformerCradle(); transformerShim(); }
+    // relay/SSR on the floor at the back-left
     color("MediumBlue") translate(relayAt) cube(relaySize);
     // IEC inlet
     color("Red") iec_mock();
@@ -344,7 +342,7 @@ module bin_and_tray() {
 
 // everything the transformer must keep clear of (left-hand coordinates)
 module transformer_obstacles() {
-    place_cradle() transformerCradle();
+    place_cradle() { transformerCradle(); transformerShim(); }
     translate([0, servoY, armBotZ]) rotate([0, 0, -90]) part_hornMount();
     translate([0, servoY, servoTopZ]) mock_servo();
     translate([0, servoY, servoMountTopZ]) servoMount();
@@ -359,10 +357,9 @@ module transformer_obstacles() {
     // the holder's pocket; the upper one, shared, on the holder's inner end
     translate([0, boxY0 + T, funnelZ + funnelBoltZs[0]]) rotate([-90, 0, 0]) cylinder(d = 9, h = 5);
     translate([0, boxY0 + T + heatsinkHolderSize()[0], funnelZ + funnelBoltZs[1]]) rotate([-90, 0, 0]) cylinder(d = 9, h = 5);
-    translate([boardX0, boardY0, boardZ0]) cube([driverBoard[2], driverBoard[0], driverBoard[1]]);
+    translate([boardX0, boardY0, boardZ0]) cube([driverBoard[1], driverBoard[2], driverBoard[0]]);
     place_holder() heatsinkHolder();
     mock_heatsinks();
-    on_fan_duct() { fanAdapter(); on_seat() translate([-driverFanSize/2, -driverFanSize/2, fanAdapterSeatT()]) cube([driverFanSize, driverFanSize, driverFanDepth]); }
     iec_mock();
 }
 

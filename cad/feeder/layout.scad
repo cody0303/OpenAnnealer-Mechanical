@@ -82,5 +82,5 @@ function heatsinkReachAt(x) =
     a >= heatsinkBackX ? 0 : a <= heatsinkTipX ? heatsinkH/2 : sqrt(heatsinkArcR^2 - (a - heatsinkArcC)^2);
 
 servoY         = clDist + servoBackset;     // funnel arm to the wall, then the backset
-servoTopZ      = armBotZ - 2;               // horn sits flat under the arm
-servoMountTopZ = servoTopZ - servoEarDrop - servoEarThk;   // where the ears sit
+servoMountTopZ = armBotZ - servoEarsToArm;  // where the ears sit, measured down from the arm
+servoTopZ      = servoMountTopZ + servoEarDrop + servoEarThk;   // the case's top

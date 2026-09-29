@@ -56,8 +56,9 @@ openscad --enable=import-function -o singulator.stl cad/feeder/singulator.scad
 | [`cabinet/servoMount.scad`](cabinet/servoMount.scad) | Holds the MG90S inside the left panel | PETG |
 | [`cabinet/heatsinkHolder.scad`](cabinet/heatsinkHolder.scad) | Holds the coil's two heatsinks; shares the funnel's upper bolt | PETG |
 | [`cabinet/screenTilt.scad`](cabinet/screenTilt.scad) | Tilted screen and knob housing, front wall | PETG |
-| [`cabinet/transformerCradle.scad`](cabinet/transformerCradle.scad) | Bridge holding the transformer over the driver board | PETG |
-| [`cabinet/fanAdapter.scad`](cabinet/fanAdapter.scad) | 40 mm fan duct, low on the front wall, angled down the driver's heatsink | PETG |
+| [`cabinet/transformerCradle.scad`](cabinet/transformerCradle.scad) | Stand under the transformer (drawn for 15°) | PETG |
+| [`cabinet/transformerShim.scad`](cabinet/transformerShim.scad) | Wedge on the cradle that steepens the transformer to 25° | PETG |
+| [`cabinet/fanAdapter.scad`](cabinet/fanAdapter.scad) | 40 mm fan duct -- not placed since the driver board stood on end | PETG |
 | [`cabinet/cornerBlock.scad`](cabinet/cornerBlock.scad) | Corner block the faces screw into (12 off) | PETG |
 | [`cabinetFlat/`](cabinetFlat) | Left panel (`sidePanel`), front, back and right walls, lid and base: 6 mm, printed as tiles or cut from ply | PETG / ply |
 

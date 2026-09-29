@@ -8,6 +8,10 @@ include <../sharedDims.scad>
 // side of it; snug slots keep them from sliding, and they're all that holds
 // the transformer along its slope.
 //
+// The shim: the cradle was drawn for a shallower transformer. To steepen it
+// without reprinting, a wedge on the slab tips it on to shimTilt, the tie
+// slots running through both. Its own part is transformerShim.scad.
+//
 // Prints on the slab's top face: the slab spans leg to leg within its
 // layers, and the legs are walls carrying the load straight down. Their
 // edges lean 45 deg; the tie slots come out vertical.
@@ -33,6 +37,10 @@ legTo     = 60;     // the legs carry the slab this far along (no further than s
 legX      = [38, 46];   // each leg, off the axis
 footLen   = 45;     // along Y, on the floor
 
+/* [Shim -- keep shimTilt in step with boxLayout.scad's xfmrDown] */
+shimTilt  = 25;     // the transformer's axis on the shim, below horizontal
+shimThin  = 2;      // the wedge at its lower end
+
 /* [Zip ties] */
 tieW      = 5.5;    // slot along the transformer, for ties up to ~4.8 wide (a tie over the
 tieT      = 2.5;    // transformer lies flat on it)... and across, for ties up to ~1.3 thick
@@ -52,6 +60,18 @@ footMidY = ((slabFrom + legTo)/2)*cos(tilt) - (r + slabT/2)*sin(tilt);
 
 //for the assembly: what the cradle was drawn for, and where its feet's screws go (x, y)
 function transformerCradleFit() = [xfmrD, xfmrLen, tilt, endH, boardTopH, boardHalfW];
+//...the shim's angle and thin end, and where the middle of the transformer's upper
+//end lands on it, its middle over the shim's middle: [y, z] in the cradle's frame
+function transformerShimFit() = [shimTilt, shimThin];
+function shim_top(y) = -r + shimThin + (slabTo - y)*tan(shimTilt - tilt);   // the shim's top, up off the slab's, in the axis frame
+function axis_yz(p) = [p[0]*cos(tilt) + p[1]*sin(tilt), -p[0]*sin(tilt) + p[1]*cos(tilt) + endH];
+function transformerOnShim() =
+    let (ym = (slabFrom + slabTo)/2,
+         m  = axis_yz([ym, shim_top(ym)]),                 // the shim's top, halfway along
+         n  = [sin(shimTilt), cos(shimTilt)],              // square off it, up
+         d  = [cos(shimTilt), -sin(shimTilt)])             // down its slope
+    m + r*n - (xfmrLen/2)*d;
+assert(shimTilt >= tilt, "the shim can only steepen the transformer");
 function transformerCradleFootHoles() =
     [for (s = [1, -1], y = [-1, 1]) [s*(legX[0] + legX[1])/2, footMidY + y*(footLen/2 - 7)]];
 
@@ -83,6 +103,25 @@ module transformerCradle() {
         for (h = transformerCradleFootHoles())
             translate([h[0], h[1], -1]) cylinder(d=m3InsertD, h=m3InsertDepth + 1, $fn=24);
     }
+}
+
+// The shim, on the slab, in the cradle's frame: a wedge the slab's width and
+// length, thin at the lower end, with the tie slots through it.
+module transformerShim() {
+    difference() {
+        axis_frame() multmatrix([[0, 0, 1, -legX[1]], [1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1]])
+            linear_extrude(height = 2*legX[1])
+                polygon([[slabFrom, -r], [slabTo, -r], [slabTo, shim_top(slabTo)], [slabFrom, shim_top(slabFrom)]]);
+        for (y = tieAt, x = [-tieX, tieX])
+            axis_frame() translate([x - tieT/2, y - tieW/2, -r - 1]) cube([tieT, tieW, shim_top(slabFrom) + r + 2]);
+    }
+}
+
+// Laid for printing: on its bottom face (the one on the slab).
+module transformerShim_print() {
+    translate([0, 0, r])
+        multmatrix([[1, 0, 0, 0], [0, cos(tilt), -sin(tilt), 0], [0, sin(tilt), cos(tilt), 0], [0, 0, 0, 1]])
+            translate([0, 0, -endH]) transformerShim();
 }
 
 // Laid for printing: on the slab's top face, the legs straight up.

@@ -16,8 +16,9 @@ nothing has been bench-tested. Screw lengths assume 6 mm cabinet faces (`cabinet
 | Servo mount | PETG | 1 | MG90S hangs in it on its ears — `cad/cabinet/servoMount.scad` |
 | Heatsink holder | PETG | 1 | Holds the two coil heatsinks — `cad/cabinet/heatsinkHolder.scad` |
 | Screen housing | PETG | 1 | Tilted screen and knob, front wall — `cad/cabinet/screenTilt.scad` |
-| Transformer cradle | PETG | 1 | Bridge over the driver board — `cad/cabinet/transformerCradle.scad` |
-| Fan duct | PETG | 1 | 40 mm fan, low on the front wall, angled down the driver heatsink — `cad/cabinet/fanAdapter.scad` |
+| Transformer cradle | PETG | 1 | Stand under the transformer, drawn for 15° — `cad/cabinet/transformerCradle.scad` |
+| Transformer shim | PETG | 1 | Wedge on the cradle's slab, steepens the transformer to 25° — `cad/cabinet/transformerShim.scad` |
+| Fan duct | PETG | 1 | 40 mm fan — not placed yet since the driver board stood up — `cad/cabinet/fanAdapter.scad` |
 | Corner block | PETG | 12 | Four vertical corners × base, seam and lid — `cad/cabinet/cornerBlock.scad` |
 
 ## Cabinet faces
@@ -30,9 +31,9 @@ two tiles joined by a half-lap, glued and bolted. The release has each tile as i
 | Face | File | Notes |
 |---|---|---|
 | Left panel | `cad/cabinetFlat/sidePanel.scad` | The feeder stack, heatsink holder, servo mount and Pico board bolt to it |
-| Front wall | `cad/cabinetFlat/frontWall.scad` | Screen housing, fan intake grille |
+| Front wall | `cad/cabinetFlat/frontWall.scad` | Screen housing |
 | Back wall | `cad/cabinetFlat/backWall.scad` | Pico board's USB-C ports, IEC inlet |
-| Right wall | `cad/cabinetFlat/rightWall.scad` | Exhaust vents |
+| Right wall | `cad/cabinetFlat/rightWall.scad` | Corner-block screws only, for now |
 | Lid | `cad/cabinetFlat/lid.scad` | Nothing mounted to it, for servicing |
 | Base | `cad/cabinetFlat/base.scad` | Transformer cradle screws up into it |
 
@@ -54,8 +55,8 @@ Each wall file has `feederSide`; a right-hand build exports its faces with `"rig
 | M3 self-tapper | ~M3×6 | 4 | Screen board onto the housing's standoffs |
 | M3 screw + washer | M3×10 | 4 | Up through the base's slots into the cradle's feet; the washers bridge the slots |
 | M3 heat-set insert | | 4 | Transformer cradle feet |
-| Zip tie | ≤5 mm wide | 2 | Over the transformer, through the cradle |
-| M3 screw | M3×10 | 4 | Front wall into the fan duct's inlet inserts |
+| Zip tie | ≤5 mm wide | 2 | Over the transformer, through the shim and cradle |
+| M3 screw | M3×10 | 4 | Wall into the fan duct's inlet inserts (fan not placed yet) |
 | M3 screw | M3×25 | 4 | Through the fan into the duct's seat inserts |
 | M3 heat-set insert | | 8 | Fan duct: 4 in the inlet face, 4 in the seat |
 | M3 standoff | M3×10 female–female | 4 | Pico motor board off the left panel |

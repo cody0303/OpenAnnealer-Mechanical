@@ -64,6 +64,7 @@ servoEarHolePitch   = 27.8;
 servoEarThk         = 2.5;
 servoEarDrop        = 4.0;  //case top down to the top face of the ears
 servoWallClear      = 1.2;  //air between the servo's wall-side ear and the inside of the cabinet wall
+servoEarsToArm      = 13.5; //measured: the servo mount's top face (the ears' underside) up to the arm's underside, horn on
 //distance from the outside wall of the box to the servo's axis: the wall, then as far as the
 //wall-side ear reaches from the shaft (half the ear span, less the case centre's offset
 //behind the shaft), then the clearance. It has to come after the servo numbers it uses.
@@ -96,4 +97,4 @@ driverFanHolePitch  = 32;   //between its screw holes (M3)
 coilTube            = 4;    //copper tube OD
 leadGap             = heatsinkSpacing + 2*heatsinkBoreIn;   //centre-to-centre: the heatsinks' lead bores
 grommetLip          = 2.5;  //the pass-through is grown by this for the grommet
-wallBackset         = 45;
+wallBackset         = 0; 
