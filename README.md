@@ -20,7 +20,7 @@ motor) pending real hardware.
 
 ## Status
 
-Nothing has been bench-tested yet. The design writeup is in [`docs/DESIGN.md`](docs/DESIGN.md).
+The design writeup is in [`docs/DESIGN.md`](docs/DESIGN.md).
 The whole machine is modelled: the feeder, the funnel and swing arm (up to .338 Lapua Mag), the coil
 mount, and the cabinet with its faces and the parts inside it. See [`cad/README.md`](cad/README.md),
 which also covers the OpenSCAD nightly requirement, and
